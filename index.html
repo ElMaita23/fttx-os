@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FTTx Next-Gen OS | Modular Workbench & GIS</title>
+  <title>FTTx Next-Gen Studio v1.0 | Enterprise Edition</title>
   
   <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -11,17 +11,29 @@
 
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { display: flex; height: 100vh; overflow: hidden; background: #0b0f17; color: #f8fafc; }
+    body { display: flex; flex-direction: column; height: 100vh; overflow: hidden; background: #070a12; color: #f8fafc; }
+
+    /* BARRA SUPERIOR */
+    #navbar {
+      height: 52px; background: #0b1120; border-bottom: 1px solid #1e293b;
+      display: flex; align-items: center; justify-content: space-between; padding: 0 16px; z-index: 1001;
+    }
+    .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; color: #38bdf8; font-size: 15px; }
+    .nav-search { display: flex; align-items: center; gap: 8px; width: 340px; }
+    .search-input {
+      width: 100%; background: #1e293b; border: 1px solid #334155; padding: 6px 12px;
+      border-radius: 6px; color: #fff; font-size: 12px; outline: none;
+    }
+    .search-input:focus { border-color: #38bdf8; }
+    .nav-actions { display: flex; gap: 8px; }
+
+    /* ÁREA DE TRABAJO PRINCIPAL */
+    #workspace { display: flex; flex: 1; height: calc(100vh - 52px); overflow: hidden; position: relative; }
 
     /* PANEL LATERAL */
-    #sidebar { width: 380px; min-width: 380px; background: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; z-index: 1000; box-shadow: 4px 0 10px rgba(0,0,0,0.5); }
-    .header { padding: 16px; background: #090d16; border-bottom: 1px solid #1f2937; }
-    .header h2 { font-size: 16px; color: #38bdf8; font-weight: 700; letter-spacing: -0.5px; }
-    .header p { font-size: 11px; color: #94a3b8; margin-top: 2px; }
-
-    /* PESTAÑAS */
-    .tabs { display: flex; background: #0b1120; border-bottom: 1px solid #1f2937; }
-    .tab-btn { flex: 1; padding: 10px; background: transparent; border: none; color: #94a3b8; font-size: 12px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.2s; }
+    #sidebar { width: 400px; min-width: 400px; background: #0f172a; border-right: 1px solid #1e293b; display: flex; flex-direction: column; z-index: 1000; box-shadow: 4px 0 12px rgba(0,0,0,0.5); }
+    .tabs { display: flex; background: #090d16; border-bottom: 1px solid #1e293b; }
+    .tab-btn { flex: 1; padding: 12px 6px; background: transparent; border: none; color: #94a3b8; font-size: 11px; font-weight: 700; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.2s; text-transform: uppercase; }
     .tab-btn.active { color: #38bdf8; border-bottom-color: #38bdf8; background: rgba(56, 189, 248, 0.05); }
 
     .content { padding: 14px; flex: 1; overflow-y: auto; }
@@ -29,33 +41,34 @@
     .tab-content.active { display: block; }
 
     .card { background: #1e293b; border-radius: 8px; padding: 12px; margin-bottom: 12px; border: 1px solid #334155; }
-    .card h3 { font-size: 12px; margin-bottom: 8px; color: #38bdf8; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; letter-spacing: 0.5px; }
+    .card h3 { font-size: 11px; margin-bottom: 8px; color: #38bdf8; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; letter-spacing: 0.5px; }
     .stat-row { display: flex; justify-content: space-between; margin: 5px 0; font-size: 12px; color: #94a3b8; }
     .stat-val { font-weight: 600; color: #f1f5f9; }
 
-    .btn { width: 100%; padding: 9px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn { width: 100%; padding: 8px 12px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 11px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; text-transform: uppercase; }
     .btn-primary { background: #2563eb; color: white; }
     .btn-primary:hover { background: #1d4ed8; }
-    .btn-danger { background: #dc2626; color: white; margin-top: 6px; }
+    .btn-danger { background: #dc2626; color: white; }
     .btn-danger:hover { background: #b91c1c; }
-    .btn-success { background: #059669; color: white; margin-top: 6px; }
+    .btn-success { background: #059669; color: white; }
     .btn-success:hover { background: #047857; }
-    .btn-warning { background: #d97706; color: white; margin-bottom: 8px; }
-    .btn-purple { background: #8b5cf6; color: white; margin-bottom: 8px; }
+    .btn-warning { background: #d97706; color: white; }
+    .btn-purple { background: #8b5cf6; color: white; }
+    .btn-outline { background: transparent; border: 1px solid #475569; color: #cbd5e1; }
+    .btn-outline:hover { background: #1e293b; border-color: #94a3b8; }
 
     .badge { padding: 2px 7px; border-radius: 9999px; font-size: 10px; font-weight: 700; }
     .badge-ok { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #059669; }
     .badge-fail { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #dc2626; }
 
+    /* TABLA BOM */
     .bom-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 6px; }
     .bom-table th { text-align: left; padding: 6px; background: #0f172a; color: #94a3b8; font-weight: 600; }
     .bom-table td { padding: 6px; border-bottom: 1px solid #334155; color: #e2e8f0; }
 
     #map { flex: 1; height: 100%; background: #1e293b; }
 
-    /* ========================================================== */
-    /* WORKBENCH MODAL: TALLER DE EMPALMES & GABINETES            */
-    /* ========================================================== */
+    /* MODAL DE EMPALMES VECTORIAL */
     #splice-modal {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0, 0, 0, 0.9); backdrop-filter: blur(6px);
@@ -70,19 +83,14 @@
     .modal-header h2 { font-size: 15px; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
     .close-btn { background: transparent; border: none; color: #94a3b8; font-size: 24px; cursor: pointer; }
 
-    /* BARRA DE HERRAMIENTAS MODULAR */
     .workbench-toolbar {
-      padding: 12px 24px; background: #0f172a; border-bottom: 1px solid #1e293b;
-      display: flex; gap: 16px; align-items: center; flex-wrap: wrap; font-size: 12px;
+      padding: 10px 24px; background: #0f172a; border-bottom: 1px solid #1e293b;
+      display: flex; gap: 14px; align-items: center; flex-wrap: wrap; font-size: 12px;
     }
-    .config-group { display: flex; align-items: center; gap: 8px; }
-    .config-group label { color: #94a3b8; font-weight: 600; }
     .config-select {
       background: #1e293b; color: #f8fafc; border: 1px solid #475569;
-      padding: 6px 10px; border-radius: 6px; font-size: 12px; outline: none; cursor: pointer;
+      padding: 6px 10px; border-radius: 6px; font-size: 11px; outline: none; cursor: pointer;
     }
-    .config-select:focus { border-color: #38bdf8; }
-
     .modal-body {
       flex: 1; position: relative; background: radial-gradient(#1e293b 1px, transparent 1px);
       background-size: 20px 20px; background-color: #080d1a; overflow-y: auto; overflow-x: hidden;
@@ -99,122 +107,158 @@
 </head>
 <body>
 
-  <!-- PANEL LATERAL -->
-  <div id="sidebar">
-    <div class="header">
-      <h2>FTTx OS Engine v0.7</h2>
-      <p>Configurador Modular de Cajas, Splitters & Hilos</p>
+  <!-- BARRA DE HERRAMIENTAS SUPERIOR -->
+  <div id="navbar">
+    <div class="brand">
+      <span style="font-size: 18px;">⚡</span>
+      <span>FTTx OS Studio <small style="font-size: 10px; color: #94a3b8;">v1.0 Enterprise</small></span>
     </div>
 
-    <div class="tabs">
-      <button class="tab-btn active" onclick="cambiarTab('telemetria')">📡 Telemetría</button>
-      <button class="tab-btn" onclick="cambiarTab('bom')">🏗️ Obra Civil & BOM</button>
+    <!-- BUSCADOR UNIVERSAL -->
+    <div class="nav-search">
+      <input type="text" id="global-search" class="search-input" placeholder="🔍 Buscar CTO, Cliente, Cable u OLT..." onkeyup="ejecutarBusqueda(event)">
     </div>
 
-    <!-- PESTAÑA 1: TELEMETRÍA -->
-    <div class="content tab-content active" id="tab-telemetria">
-      <button class="btn btn-purple" id="btn-drop" onclick="toggleModoCliente()">🏠 Conectar Nuevo Cliente (Drop)</button>
-
-      <div class="card">
-        <h3>Telemetría GPON (1490nm) <span class="badge badge-ok" id="net-status">ONLINE</span></h3>
-        <div class="stat-row"><span>Potencia TX OLT:</span><span class="stat-val">+4.50 dBm</span></div>
-        <div class="stat-row"><span>Atenuación Fibra:</span><span class="stat-val">0.22 dB/km</span></div>
-        <div class="stat-row"><span>Abonados Conectados:</span><span class="stat-val" id="total-clientes">10 abonados</span></div>
-      </div>
-
-      <div class="card" id="element-details">
-        <h3>Elemento Seleccionado</h3>
-        <p style="font-size: 12px; color: #94a3b8;">Haz clic en una <strong>CTO verde</strong> o una <strong>Mufla</strong> para configurar sus splitters e hilos internos.</p>
-      </div>
-
-      <div class="card">
-        <h3>Simulación de Eventos</h3>
-        <button class="btn btn-danger" onclick="simularCorte()">⚠️ Simular Rotura de Troncal</button>
-        <button class="btn btn-success" onclick="restaurarRed()">🔄 Restaurar Enlace</button>
-      </div>
-    </div>
-
-    <!-- PESTAÑA 2: OBRA CIVIL & BOM -->
-    <div class="content tab-content" id="tab-bom">
-      <button class="btn btn-warning" id="btn-draw" onclick="toggleModoDibujo()">✏️ Modo Trazo Troncal/Postes</button>
-      
-      <div class="card">
-        <h3>Resumen Métrico</h3>
-        <div class="stat-row"><span>Cable Distribución ADSS:</span><span class="stat-val" id="bom-cable-len">1,000 m</span></div>
-        <div class="stat-row"><span>Cable Drop Clientes:</span><span class="stat-val" id="bom-drop-len">0 m</span></div>
-        <div class="stat-row"><span>Total Postes:</span><span class="stat-val" id="bom-postes">3 postes</span></div>
-        <div class="stat-row"><span>Total Gabinetes:</span><span class="stat-val" id="bom-ctos">2 cajas</span></div>
-      </div>
-
-      <div class="card">
-        <h3>Explosión de Materiales (BOM)</h3>
-        <table class="bom-table">
-          <thead><tr><th>Ítem</th><th>Cant.</th><th>Unid.</th></tr></thead>
-          <tbody id="bom-table-body"></tbody>
-        </table>
-        <button class="btn btn-primary" style="margin-top: 12px;" onclick="exportarCSV()">📥 Exportar BOM a Excel (CSV)</button>
-      </div>
+    <div class="nav-actions">
+      <button class="btn btn-outline" onclick="exportarProyectoJSON()">💾 Guardar Red (.json)</button>
+      <button class="btn btn-outline" onclick="document.getElementById('file-input').click()">📂 Cargar Red</button>
+      <input type="file" id="file-input" style="display: none;" onchange="importarProyectoJSON(event)">
+      <button class="btn btn-primary" onclick="exportarCSV()">📥 Descargar BOM (CSV)</button>
     </div>
   </div>
 
-  <!-- MAPA GIS -->
-  <div id="map"></div>
+  <div id="workspace">
+    <!-- PANEL LATERAL -->
+    <div id="sidebar">
+      <div class="tabs">
+        <button class="tab-btn active" onclick="cambiarTab('diseno')">🛠️ Diseño</button>
+        <button class="tab-btn" onclick="cambiarTab('telemetria')">📡 Red & Potencia</button>
+        <button class="tab-btn" onclick="cambiarTab('bom')">🏗️ BOM & Finanzas</button>
+        <button class="tab-btn" onclick="cambiarTab('otdr')">🎯 Localizador OTDR</button>
+      </div>
 
-  <!-- ========================================================== -->
-  <!-- MODAL MODULAR: TALLER DE EMPALMES & GABINETES              -->
-  <!-- ========================================================== -->
+      <!-- PESTAÑA 1: HERRAMIENTAS DE DISEÑO -->
+      <div class="content tab-content active" id="tab-diseno">
+        <div class="card">
+          <h3>Herramientas Activas de Campo</h3>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <button class="btn btn-warning" id="btn-draw" onclick="toggleModoDibujo()">✏️ Trazar Cable Troncal / Postes</button>
+            <button class="btn btn-purple" id="btn-drop" onclick="toggleModoCliente()">🏠 Conectar Acometida Drop (Cliente)</button>
+          </div>
+          <p style="font-size: 11px; color: #94a3b8; margin-top: 8px;">
+            * Activa el modo de trazado y haz clic sobre las calles para expandir la red, o activa acometida para conectar clientes a las CTOs.
+          </p>
+        </div>
+
+        <div class="card" id="element-details">
+          <h3>Inspección Rápida</h3>
+          <p style="font-size: 12px; color: #94a3b8;">Haz clic en cualquier elemento en el mapa satelital para ver sus especificaciones.</p>
+        </div>
+      </div>
+
+      <!-- PESTAÑA 2: TELEMETRÍA Y CONTROL DE RED -->
+      <div class="content tab-content" id="tab-telemetria">
+        <div class="card">
+          <h3>Telemetría Cabecera GPON <span class="badge badge-ok" id="net-status">ONLINE</span></h3>
+          <div class="stat-row"><span>Potencia TX OLT:</span><span class="stat-val">+4.50 dBm</span></div>
+          <div class="stat-row"><span>Atenuación Fibra:</span><span class="stat-val">0.22 dB/km</span></div>
+          <div class="stat-row"><span>Abonados Conectados:</span><span class="stat-val" id="total-clientes">10 clientes</span></div>
+        </div>
+
+        <div class="card">
+          <h3>Simulación de Eventos de Red</h3>
+          <button class="btn btn-danger" style="margin-bottom: 6px;" onclick="simularCorte()">⚠️ Simular Rotura de Troncal</button>
+          <button class="btn btn-success" onclick="restaurarRed()">🔄 Restaurar Red</button>
+        </div>
+      </div>
+
+      <!-- PESTAÑA 3: OBRA CIVIL Y BOM FINANCIERO -->
+      <div class="content tab-content" id="tab-bom">
+        <div class="card">
+          <h3>Métricas Físicas de Despliegue</h3>
+          <div class="stat-row"><span>Cable Troncal/Distribución:</span><span class="stat-val" id="bom-cable-len">1,000 m</span></div>
+          <div class="stat-row"><span>Cable Drop Flat Clientes:</span><span class="stat-val" id="bom-drop-len">0 m</span></div>
+          <div class="stat-row"><span>Postes de Red:</span><span class="stat-val" id="bom-postes">3 postes</span></div>
+          <div class="stat-row"><span>Gabinetes (CTO/Mufla):</span><span class="stat-val" id="bom-ctos">2 cajas</span></div>
+          <div class="stat-row" style="margin-top: 8px; border-top: 1px solid #334155; padding-top: 6px;">
+            <span>Costo Total Estimado:</span><span class="stat-val" id="bom-costo-total" style="color: #38bdf8;">$0.00 USD</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Lista de Materiales y Precios</h3>
+          <table class="bom-table">
+            <thead><tr><th>Ítem</th><th>Cant.</th><th>P.Unit</th><th>Total</th></tr></thead>
+            <tbody id="bom-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- PESTAÑA 4: LOCALIZADOR DE FALLAS OTDR (OZLOC ENGINE) -->
+      <div class="content tab-content" id="tab-otdr">
+        <div class="card">
+          <h3>Diagnóstico de Traza OTDR</h3>
+          <p style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">
+            Ingresa la distancia en metros reportada por el evento de corte del OTDR desde la OLT:
+          </p>
+          <div style="display: flex; gap: 6px; margin-bottom: 8px;">
+            <input type="number" id="otdr-meters" class="search-input" placeholder="Distancia (ej. 750)" value="750">
+            <button class="btn btn-danger" style="width: auto; padding: 6px 14px;" onclick="localizarFallaOTDR()">Localizar</button>
+          </div>
+          <div id="otdr-result" style="font-size: 11px; color: #cbd5e1; line-height: 1.5;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAPA SATELITAL -->
+    <div id="map"></div>
+  </div>
+
+  <!-- MODAL DE EMPALMES VECTORIAL -->
   <div id="splice-modal">
     <div class="modal-box">
       <div class="modal-header">
-        <h2 id="modal-title">🛠️ Configuración de Gabinete Interno: CTO-01</h2>
+        <h2 id="modal-title">🛠️ Taller de Empalmes Interno</h2>
         <button class="close-btn" onclick="cerrarDiagrama()">&times;</button>
       </div>
 
-      <!-- BARRA DE CONFIGURACIÓN MODULAR (EL USUARIO DECIDE TODO) -->
       <div class="workbench-toolbar">
-        <div class="config-group">
-          <label>Tipo Gabinete:</label>
-          <select id="sel-tipo-caja" class="config-select" onchange="actualizarWorkbench()">
-            <option value="CTO_8">CTO Conectorizada (8 Puertos SC/APC)</option>
-            <option value="CTO_16">CTO Conectorizada (16 Puertos SC/APC)</option>
-            <option value="MUFLA">Manga/Mufla de Empalme Troncal (FOSC)</option>
-          </select>
-        </div>
+        <label style="color:#94a3b8; font-weight:600;">Gabinete:</label>
+        <select id="sel-tipo-caja" class="config-select" onchange="actualizarWorkbench()">
+          <option value="CTO_8">CTO Conectorizada 8P</option>
+          <option value="CTO_16">CTO Conectorizada 16P</option>
+          <option value="MUFLA">Manga/Mufla de Empalme Troncal (FOSC)</option>
+        </select>
 
-        <div class="config-group">
-          <label>Splitter a Instalar:</label>
-          <select id="sel-splitter" class="config-select" onchange="actualizarWorkbench()">
-            <option value="PLC_1_8">Splitter PLC 1:8 Balanceado (-10.5 dB)</option>
-            <option value="PLC_1_16">Splitter PLC 1:16 Balanceado (-13.8 dB)</option>
-            <option value="PLC_1_4">Splitter PLC 1:4 Balanceado (-7.2 dB)</option>
-            <option value="FBT_80_20">Splitter Desbalanceado 80/20 (Tap -7.5 dB / Pass -1.2 dB)</option>
-            <option value="FBT_90_10">Splitter Desbalanceado 90/10 (Tap -10.5 dB / Pass -0.8 dB)</option>
-            <option value="PASO_DIRECTO">Sin Splitter (Paso Directo / Sangría)</option>
-          </select>
-        </div>
+        <label style="color:#94a3b8; font-weight:600;">Splitter:</label>
+        <select id="sel-splitter" class="config-select" onchange="actualizarWorkbench()">
+          <option value="PLC_1_8">PLC 1:8 (-10.5 dB)</option>
+          <option value="PLC_1_16">PLC 1:16 (-13.8 dB)</option>
+          <option value="PLC_1_4">PLC 1:4 (-7.2 dB)</option>
+          <option value="FBT_80_20">Desbalanceado 80/20 (Tap/Pass)</option>
+          <option value="FBT_90_10">Desbalanceado 90/10 (Tap/Pass)</option>
+          <option value="PASO_DIRECTO">Paso Directo (Sin Splitter)</option>
+        </select>
 
-        <div class="config-group">
-          <label>Hilo Feeder a Sangrar:</label>
-          <select id="sel-hilo" class="config-select" onchange="actualizarWorkbench()">
-            <option value="1|#3b82f6|Azul">H1 - Azul</option>
-            <option value="2|#f97316|Naranja">H2 - Naranja</option>
-            <option value="3|#22c55e|Verde">H3 - Verde</option>
-            <option value="4|#a16207|Marrón">H4 - Marrón</option>
-            <option value="5|#64748b|Gris">H5 - Gris</option>
-            <option value="6|#f8fafc|Blanco">H6 - Blanco</option>
-            <option value="7|#ef4444|Rojo">H7 - Rojo</option>
-            <option value="8|#1e293b|Negro">H8 - Negro</option>
-            <option value="9|#eab308|Amarillo">H9 - Amarillo</option>
-            <option value="10|#a855f7|Violeta">H10 - Violeta</option>
-            <option value="11|#ec4899|Rosa">H11 - Rosa</option>
-            <option value="12|#06b6d4|Aqua">H12 - Aqua</option>
-          </select>
-        </div>
+        <label style="color:#94a3b8; font-weight:600;">Hilo Sangrado:</label>
+        <select id="sel-hilo" class="config-select" onchange="actualizarWorkbench()">
+          <option value="1|#3b82f6|Azul">H1 - Azul</option>
+          <option value="2|#f97316|Naranja">H2 - Naranja</option>
+          <option value="3|#22c55e|Verde">H3 - Verde</option>
+          <option value="4|#a16207|Marrón">H4 - Marrón</option>
+          <option value="5|#64748b|Gris">H5 - Gris</option>
+          <option value="6|#f8fafc|Blanco">H6 - Blanco</option>
+          <option value="7|#ef4444|Rojo">H7 - Rojo</option>
+          <option value="8|#1e293b|Negro">H8 - Negro</option>
+          <option value="9|#eab308|Amarillo">H9 - Amarillo</option>
+          <option value="10|#a855f7|Violeta">H10 - Violeta</option>
+          <option value="11|#ec4899|Rosa">H11 - Rosa</option>
+          <option value="12|#06b6d4|Aqua">H12 - Aqua</option>
+        </select>
 
-        <button class="btn btn-primary" style="width: auto; padding: 6px 14px;" onclick="aplicarFusion()">⚡ Aplicar Fusión</button>
+        <button class="btn btn-primary" style="width: auto; padding: 6px 14px;" onclick="aplicarFusion()">⚡ Guardar Fusión</button>
       </div>
 
-      <!-- CANVAS ESQUEMÁTICO SVG INTERACTIVO -->
       <div class="modal-body">
         <svg id="schematic-svg" viewBox="0 0 1200 620">
           <defs>
@@ -225,31 +269,21 @@
               <stop offset="0%" stop-color="#1e293b"/><stop offset="50%" stop-color="#0f172a"/><stop offset="100%" stop-color="#1e293b"/>
             </linearGradient>
           </defs>
-
-          <!-- 1. CABLE FEEDER IZQUIERDA -->
           <g transform="translate(30, 60)">
             <rect x="0" y="60" width="110" height="360" rx="12" fill="#030712" stroke="#334155" stroke-width="2" filter="url(#shadow)"/>
             <text x="55" y="40" fill="#94a3b8" font-size="11" font-weight="bold" text-anchor="middle">CABLE DIST. 12 FO</text>
             <rect x="75" y="90" width="75" height="300" rx="8" fill="#1e3a8a" stroke="#3b82f6" stroke-width="2"/>
-            <text x="112" y="410" fill="#60a5fa" font-size="10" text-anchor="middle">Tubo 1 (Azul)</text>
+            <text x="112" y="410" fill="#60a5fa" font-size="10" text-anchor="middle">Tubo 1 Azul</text>
             <g id="hilos-salida"></g>
           </g>
-
-          <!-- 2. MANGUITO DE FUSIÓN -->
           <g transform="translate(330, 230)">
             <rect x="0" y="0" width="85" height="26" rx="13" fill="#1e293b" stroke="#64748b" stroke-width="1.5" filter="url(#shadow)"/>
             <rect x="8" y="8" width="69" height="10" rx="5" fill="#475569" id="manguito-core"/>
             <text x="42" y="-10" fill="#94a3b8" font-size="10" text-anchor="middle">Empalme Fusión</text>
             <text x="42" y="42" fill="#64748b" font-size="9" text-anchor="middle">0.05 dB Pérdida</text>
           </g>
-
-          <!-- 3. MÓDULO SPLITTER / PASO -->
           <g transform="translate(480, 80)" id="splitter-module-group"></g>
-
-          <!-- 4. BANCO DE ACOPLADORES / PUERTOS DE SALIDA -->
           <g transform="translate(860, 40)" id="outputs-group"></g>
-
-          <!-- 5. HILOS FÍSICOS SVG -->
           <g id="dynamic-wires"></g>
         </svg>
       </div>
@@ -257,22 +291,23 @@
   </div>
 
   <script>
-    // 1. Capas Mapas Sin API Key
+    // 1. Capas Cartográficas Sin API Key
     const satelite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri', maxZoom: 19 });
     const calles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 19 });
 
     const map = L.map('map', { center: [10.481, -66.882], zoom: 16, layers: [satelite] });
     L.control.layers({ "Satélite HD (Esri)": satelite, "Mapa de Calles (OSM)": calles }).addTo(map);
 
-    // 2. Inventario de Red
+    // 2. Estado Global Persistente del Proyecto
     let modoDibujo = false;
     let modoCliente = false;
     let redCoords = [[10.482, -66.885], [10.480, -66.881], [10.478, -66.877]];
     let postesCount = 3;
     let totalClientes = 10;
     let totalMetrosDrop = 0;
+    let dropsList = [];
+    let otdrMarker = null;
 
-    // Lista de Cajas con su configuración interna
     let ctos = [
       { id: "CTO-01", latlng: [10.480, -66.881], dist_olt: 650, ocupados: 6, cap: 8, tipo: "CTO_8", splitter: "PLC_1_8", hilo: "1|#3b82f6|Azul", marker: null },
       { id: "CTO-02", latlng: [10.478, -66.877], dist_olt: 1000, ocupados: 4, cap: 8, tipo: "CTO_8", splitter: "PLC_1_8", hilo: "2|#f97316|Naranja", marker: null }
@@ -296,21 +331,17 @@
     function cambiarTab(tab) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-      if(tab === 'telemetria') {
-        document.querySelectorAll('.tab-btn')[0].classList.add('active');
-        document.getElementById('tab-telemetria').classList.add('active');
-      } else {
-        document.querySelectorAll('.tab-btn')[1].classList.add('active');
-        document.getElementById('tab-bom').classList.add('active');
-        actualizarBOM();
-      }
+      document.querySelectorAll(`.tab-btn`)[['diseno','telemetria','bom','otdr'].indexOf(tab)].classList.add('active');
+      document.getElementById(`tab-${tab}`).classList.add('active');
+      if (tab === 'bom') actualizarBOM();
     }
 
+    // MODOS DE CAMPO
     function toggleModoDibujo() {
       modoDibujo = !modoDibujo;
       if (modoCliente) toggleModoCliente();
       const btn = document.getElementById('btn-draw');
-      btn.innerText = modoDibujo ? "🛑 Detener Trazo" : "✏️ Modo Trazo Troncal/Postes";
+      btn.innerText = modoDibujo ? "🛑 Detener Trazo" : "✏️ Trazar Cable Troncal / Postes";
       btn.style.background = modoDibujo ? "#dc2626" : "#d97706";
       map.getContainer().style.cursor = modoDibujo ? "crosshair" : "";
     }
@@ -319,7 +350,7 @@
       modoCliente = !modoCliente;
       if (modoDibujo) toggleModoDibujo();
       const btn = document.getElementById('btn-drop');
-      btn.innerText = modoCliente ? "🛑 Cancelar Acometida" : "🏠 Conectar Nuevo Cliente (Drop)";
+      btn.innerText = modoCliente ? "🛑 Cancelar Acometida" : "🏠 Conectar Acometida Drop (Cliente)";
       btn.style.background = modoCliente ? "#dc2626" : "#8b5cf6";
       map.getContainer().style.cursor = modoCliente ? "pointer" : "";
     }
@@ -345,6 +376,7 @@
         ctos.push(nuevaCaja);
         refrescarMarcadores();
         actualizarBOM();
+        guardarEnLocalStorage();
         return;
       }
       if (modoCliente) {
@@ -357,18 +389,12 @@
       let menorDistancia = 999999;
 
       ctos.forEach(c => {
-        if (c.tipo === "MUFLA") return; // No se conectan drops a muflas troncales
+        if (c.tipo === "MUFLA") return;
         const d = map.distance(clienteLatLng, c.latlng);
-        if (d < menorDistancia) {
-          menorDistancia = d;
-          mejorCTO = c;
-        }
+        if (d < menorDistancia) { menorDistancia = d; mejorCTO = c; }
       });
 
-      if (!mejorCTO) {
-        alert("❌ No hay CTOs de distribución cercanas disponibles.");
-        return;
-      }
+      if (!mejorCTO) { alert("❌ No hay CTOs de distribución cercanas."); return; }
 
       const distM = Math.round(menorDistancia);
       if (distM > 150) {
@@ -383,9 +409,9 @@
       mejorCTO.ocupados++;
       totalClientes++;
       totalMetrosDrop += distM;
-      document.getElementById('total-clientes').innerText = `${totalClientes} abonados`;
+      document.getElementById('total-clientes').innerText = `${totalClientes} clientes`;
 
-      L.polyline([mejorCTO.latlng, [clienteLatLng.lat, clienteLatLng.lng]], { color: '#facc15', weight: 2.5, dashArray: '5, 5' }).addTo(map);
+      const dropLine = L.polyline([mejorCTO.latlng, [clienteLatLng.lat, clienteLatLng.lng]], { color: '#facc15', weight: 2.5, dashArray: '5, 5' }).addTo(map);
       const cliMarker = L.circleMarker([clienteLatLng.lat, clienteLatLng.lng], { radius: 6, fillColor: '#d946ef', color: '#fff', weight: 1.5, fillOpacity: 1 }).addTo(map);
 
       let splitLoss = 10.5;
@@ -393,16 +419,19 @@
       if (mejorCTO.splitter === "PLC_1_4") splitLoss = 7.2;
 
       const rxONT = (4.5 - ((mejorCTO.dist_olt / 1000 * 0.22) + splitLoss + 0.2 + (distM / 1000 * 0.35) + 0.6)).toFixed(2);
-      cliMarker.bindPopup(`<strong>CLI-${1000 + totalClientes}</strong><br>Caja: ${mejorCTO.id}<br>Drop: ${distM}m<br>RX: <b style="color:#10b981">${rxONT} dBm</b>`).openPopup();
+      const cliId = `CLI-${1000 + totalClientes}`;
+      cliMarker.bindPopup(`<strong>${cliId}</strong><br>Caja: ${mejorCTO.id}<br>Drop: ${distM}m<br>RX: <b style="color:#10b981">${rxONT} dBm</b>`).openPopup();
+
+      dropsList.push({ id: cliId, latlng: [clienteLatLng.lat, clienteLatLng.lng], cto: mejorCTO.id, dist: distM, rx: rxONT });
 
       seleccionarCTO(mejorCTO);
       actualizarBOM();
+      guardarEnLocalStorage();
       toggleModoCliente();
     }
 
     function seleccionarCTO(c) {
       cajaActual = c;
-      cambiarTab('telemetria');
       const perdidaFibra = (c.dist_olt / 1000) * 0.22;
       let splitLoss = 10.5;
       if (c.splitter === "PLC_1_16") splitLoss = 13.8;
@@ -424,7 +453,6 @@
     }
 
     oltMarker.on('click', () => {
-      cambiarTab('telemetria');
       document.getElementById('element-details').innerHTML = `
         <h3>Detalle: OLT-Cabecera-01</h3>
         <div class="stat-row"><span>Tipo:</span><span class="stat-val">Chassis GPON</span></div>
@@ -433,28 +461,98 @@
       `;
     });
 
-    // ==========================================================
-    // WORKBENCH MODULAR (TALLER DE CONFIGURACIÓN)
-    // ==========================================================
+    // BUSCADOR UNIVERSAL
+    function ejecutarBusqueda(e) {
+      if (e.key === 'Enter') {
+        const query = document.getElementById('global-search').value.trim().toUpperCase();
+        if (!query) return;
+
+        if (query.includes('OLT')) {
+          map.setView([10.482, -66.885], 18);
+          oltMarker.openPopup();
+          return;
+        }
+
+        const foundCTO = ctos.find(c => c.id.toUpperCase().includes(query));
+        if (foundCTO) {
+          map.setView(foundCTO.latlng, 18);
+          seleccionarCTO(foundCTO);
+          return;
+        }
+
+        const foundClient = dropsList.find(d => d.id.toUpperCase().includes(query));
+        if (foundClient) {
+          map.setView(foundClient.latlng, 19);
+          alert(`Encontrado: ${foundClient.id} conectado a ${foundClient.cto}`);
+          return;
+        }
+
+        alert(`No se encontró ningún elemento coincidente con: "${query}"`);
+      }
+    }
+
+    // LOCALIZADOR OTDR
+    function localizarFallaOTDR() {
+      const distInput = parseFloat(document.getElementById('otdr-meters').value);
+      if (isNaN(distInput) || distInput <= 0) return;
+
+      let acumulado = 0;
+      let puntoFalla = null;
+
+      for (let i = 0; i < redCoords.length - 1; i++) {
+        const d = map.distance(redCoords[i], redCoords[i+1]);
+        if (acumulado + d >= distInput) {
+          const ratio = (distInput - acumulado) / d;
+          puntoFalla = [
+            redCoords[i][0] + (redCoords[i+1][0] - redCoords[i][0]) * ratio,
+            redCoords[i][1] + (redCoords[i+1][1] - redCoords[i][1]) * ratio
+          ];
+          break;
+        }
+        acumulado += d;
+      }
+
+      if (!puntoFalla) {
+        puntoFalla = redCoords[redCoords.length - 1];
+      }
+
+      if (otdrMarker) map.removeLayer(otdrMarker);
+
+      otdrMarker = L.marker(puntoFalla, {
+        icon: L.divIcon({
+          className: 'otdr-fault-icon',
+          html: '<div style="background:#dc2626; color:#fff; font-weight:bold; font-size:12px; padding:4px 8px; border-radius:6px; border:2px solid #fff; box-shadow:0 0 15px #dc2626; width:max-content;">⚠️ ROTURA OTDR: ' + distInput + 'm</div>'
+        })
+      }).addTo(map);
+
+      map.setView(puntoFalla, 18);
+
+      document.getElementById('otdr-result').innerHTML = `
+        <div style="background: rgba(239,68,68,0.15); border: 1px solid #dc2626; padding: 8px; border-radius: 6px; margin-top: 8px;">
+          <strong style="color:#f87171;">Avería Localizada con Éxito:</strong><br>
+          Distancia OLT: <b>${distInput} metros</b><br>
+          Coordenadas: <b>${puntoFalla[0].toFixed(5)}, ${puntoFalla[1].toFixed(5)}</b><br>
+          Vano afectado: <b>Entre Poste 1 y Poste ${redCoords.length}</b>
+        </div>
+      `;
+    }
+
+    // WORKBENCH MODULAR (SVG)
     function abrirDiagrama() {
-      document.getElementById('modal-title').innerText = `🛠️ Configuración de Gabinete Interno: ${cajaActual.id}`;
+      document.getElementById('modal-title').innerText = `🛠️ Taller de Empalmes: ${cajaActual.id}`;
       document.getElementById('sel-tipo-caja').value = cajaActual.tipo;
       document.getElementById('sel-splitter').value = cajaActual.splitter;
       document.getElementById('sel-hilo').value = cajaActual.hilo;
       document.getElementById('splice-modal').style.display = 'flex';
       actualizarWorkbench();
     }
-
-    function cerrarDiagrama() {
-      document.getElementById('splice-modal').style.display = 'none';
-    }
+    function cerrarDiagrama() { document.getElementById('splice-modal').style.display = 'none'; }
 
     function actualizarWorkbench() {
       const tipoCaja = document.getElementById('sel-tipo-caja').value;
       const splitter = document.getElementById('sel-splitter').value;
       const [hiloNum, hiloColor, hiloNombre] = document.getElementById('sel-hilo').value.split('|');
 
-      // 1. Dibujar hilos salientes del cable feeder
       const gHilos = document.getElementById('hilos-salida');
       gHilos.innerHTML = '';
       const hilosColores = [
@@ -471,13 +569,12 @@
         `;
       }
 
-      // 2. Dibujar Módulo Splitter
       const gSplitter = document.getElementById('splitter-module-group');
       if (splitter === "PASO_DIRECTO" || tipoCaja === "MUFLA") {
         gSplitter.innerHTML = `
           <rect x="0" y="60" width="230" height="320" rx="10" fill="url(#splitterGrad)" stroke="#64748b" stroke-width="2" filter="url(#shadow)"/>
           <text x="115" y="190" fill="#94a3b8" font-size="13" font-weight="bold" text-anchor="middle">BANDEJA DE PASO DIRECTO</text>
-          <text x="115" y="210" fill="#64748b" font-size="10" text-anchor="middle">Empalmes mecánicos / Fusión directa</text>
+          <text x="115" y="210" fill="#64748b" font-size="10" text-anchor="middle">Empalmes hilo a hilo</text>
         `;
       } else {
         const titleSplit = splitter.replace('_', ' ').replace('_', ':');
@@ -485,45 +582,26 @@
           <rect x="0" y="40" width="230" height="380" rx="10" fill="url(#splitterGrad)" stroke="#38bdf8" stroke-width="2" filter="url(#shadow)"/>
           <rect x="15" y="55" width="200" height="48" rx="6" fill="#090d16" stroke="#1e293b"/>
           <text x="115" y="75" fill="#38bdf8" font-size="12" font-weight="bold" text-anchor="middle">${titleSplit}</text>
-          <text x="115" y="92" fill="#64748b" font-size="9" text-anchor="middle">Optical Waveguide Module</text>
+          <text x="115" y="92" fill="#64748b" font-size="9" text-anchor="middle">Optical Waveguide PLC</text>
           <circle cx="0" cy="230" r="7" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
           <text x="15" y="234" fill="#cbd5e1" font-size="10" font-weight="bold">IN (1490nm)</text>
         `;
       }
 
-      // 3. Dibujar Salidas (Puertos SC/APC o Salidas Troncales)
       const gOut = document.getElementById('outputs-group');
       const gWires = document.getElementById('dynamic-wires');
       gOut.innerHTML = '';
       gWires.innerHTML = '';
 
       const numPuertos = (splitter === "PLC_1_16" || tipoCaja === "CTO_16") ? 16 : (splitter === "PLC_1_4" ? 4 : 8);
-      const isAsym = splitter.includes("FBT");
 
       if (tipoCaja === "MUFLA" || splitter === "PASO_DIRECTO") {
         gOut.innerHTML = `
           <rect x="0" y="60" width="260" height="360" rx="10" fill="#070a13" stroke="#334155" stroke-width="2"/>
           <text x="130" y="45" fill="#94a3b8" font-size="11" font-weight="bold" text-anchor="middle">CABLE DISTRIBUCIÓN SALIENTE (OUT)</text>
-          <text x="130" y="240" fill="#38bdf8" font-size="11" text-anchor="middle">12 Fibras en Paso hacia Siguiente Caja</text>
-        `;
-      } else if (isAsym) {
-        // Desbalanceado 80/20 o 90/10
-        gOut.innerHTML = `
-          <rect x="0" y="80" width="260" height="300" rx="10" fill="#070a13" stroke="#334155" stroke-width="2"/>
-          <text x="130" y="65" fill="#94a3b8" font-size="11" font-weight="bold" text-anchor="middle">SALIDAS ASIMÉTRICAS (FBT)</text>
-          <g transform="translate(20, 120)">
-            <rect x="0" y="0" width="45" height="34" rx="4" fill="#047857" stroke="#10b981" stroke-width="1.5"/>
-            <text x="55" y="16" fill="#f8fafc" font-size="11" font-weight="bold">PUERTO TAP (Derivación Drop)</text>
-            <text x="55" y="29" fill="#10b981" font-size="10">-18.40 dBm (Atenuación: 7.5 dB)</text>
-          </g>
-          <g transform="translate(20, 220)">
-            <rect x="0" y="0" width="45" height="34" rx="4" fill="#1e3a8a" stroke="#38bdf8" stroke-width="1.5"/>
-            <text x="55" y="16" fill="#f8fafc" font-size="11" font-weight="bold">PUERTO PASS (Express al Vano)</text>
-            <text x="55" y="29" fill="#38bdf8" font-size="10">-12.10 dBm (Pasa a la siguiente CTO)</text>
-          </g>
+          <text x="130" y="240" fill="#38bdf8" font-size="11" text-anchor="middle">12 Fibras hacia Siguiente Vano</text>
         `;
       } else {
-        // Puertos Balanceados SC/APC
         gOut.innerHTML = `
           <rect x="0" y="20" width="260" height="480" rx="10" fill="#070a13" stroke="#334155" stroke-width="2"/>
           <text x="130" y="10" fill="#94a3b8" font-size="11" font-weight="bold" text-anchor="middle">REGLETA PUERTOS SC/APC (${numPuertos}P)</text>
@@ -540,8 +618,6 @@
               <text x="48" y="24" fill="#10b981" font-size="9" font-family="monospace">${pwr} dBm</text>
             </g>
           `;
-
-          // Curva Bézier desde Splitter al Puerto
           const ySplittOut = 120 + (i * (260 / numPuertos));
           gWires.innerHTML += `
             <path d="M 710 ${ySplittOut} C 780 ${ySplittOut}, 800 ${40 + y + 13}, 880 ${40 + y + 13}" 
@@ -550,7 +626,6 @@
         }
       }
 
-      // Hilo del feeder al manguito y al splitter IN con el color elegido
       const yFeederOrig = 170 + ((parseInt(hiloNum) - 1) * 22);
       gWires.innerHTML += `
         <path d="M 180 ${yFeederOrig} C 250 ${yFeederOrig}, 270 243, 330 243" fill="none" stroke="${hiloColor}" stroke-width="2.5" class="fiber-active"/>
@@ -565,14 +640,14 @@
       cajaActual.hilo = document.getElementById('sel-hilo').value;
       cajaActual.cap = cajaActual.splitter === "PLC_1_16" || cajaActual.tipo === "CTO_16" ? 16 : 8;
 
-      alert(`✅ Configuración aplicada con éxito a ${cajaActual.id}:\n- Tipo: ${cajaActual.tipo}\n- Splitter: ${cajaActual.splitter}\n- Hilo Sangrado: ${cajaActual.hilo.split('|')[2]}`);
       refrescarMarcadores();
       seleccionarCTO(cajaActual);
       actualizarBOM();
+      guardarEnLocalStorage();
       cerrarDiagrama();
     }
 
-    // BOM
+    // BOM Y COSTOS FINANCIEROS EN USD
     function actualizarBOM() {
       let totalMetros = 0;
       for (let i = 0; i < redCoords.length - 1; i++) totalMetros += map.distance(redCoords[i], redCoords[i+1]);
@@ -585,32 +660,81 @@
       document.getElementById('bom-ctos').innerText = `${ctos.length} gabinetes`;
 
       const materiales = [
-        { item: "Cable Óptico ADSS 24 FO G.652D", cant: cableConReserva, unid: "m" },
-        { item: "Cable Drop Flat 1 FO G.657A2", cant: totalMetrosDrop, unid: "m" },
-        { item: "Herraje de Retención ADSS", cant: postesCount * 2, unid: "pza" },
-        { item: "Herraje de Suspensión (Soporte J)", cant: Math.max(0, postesCount - 2), unid: "pza" },
-        { item: "Tensores Gota (P-Clamp) Drop", cant: Math.round(totalMetrosDrop / 35), unid: "pza" },
-        { item: "Cinta Acero Inox 3/4\" (Band-it)", cant: Math.round(postesCount * 2.5), unid: "m" },
-        { item: "Cajas CTO / Muflas FOSC Instaladas", cant: ctos.length, unid: "pza" }
+        { item: "Cable Óptico ADSS 24 FO G.652D", cant: cableConReserva, unid: "m", precio: 0.85 },
+        { item: "Cable Drop Flat 1 FO G.657A2", cant: totalMetrosDrop, unid: "m", precio: 0.15 },
+        { item: "Herraje de Retención ADSS", cant: postesCount * 2, unid: "pza", precio: 3.50 },
+        { item: "Herraje de Suspensión (Soporte J)", cant: Math.max(0, postesCount - 2), unid: "pza", precio: 2.80 },
+        { item: "Tensores Gota (P-Clamp) Drop", cant: Math.round(totalMetrosDrop / 35), unid: "pza", precio: 0.75 },
+        { item: "Cinta Acero Inox 3/4\" (Band-it)", cant: Math.round(postesCount * 2.5), unid: "m", precio: 1.10 },
+        { item: "Cajas CTO / Muflas FOSC", cant: ctos.length, unid: "pza", precio: 22.00 },
+        { item: "Splitters PLC Ópticos", cant: ctos.length, unid: "pza", precio: 7.50 }
       ];
 
+      let granTotal = 0;
       const tbody = document.getElementById('bom-table-body');
       tbody.innerHTML = '';
       materiales.forEach(m => {
-        tbody.innerHTML += `<tr><td>${m.item}</td><td style="font-weight: bold; color: #38bdf8;">${m.cant}</td><td>${m.unid}</td></tr>`;
+        const subtotal = m.cant * m.precio;
+        granTotal += subtotal;
+        tbody.innerHTML += `<tr><td>${m.item}</td><td style="font-weight:bold; color:#38bdf8;">${m.cant}</td><td>$${m.precio.toFixed(2)}</td><td>$${subtotal.toFixed(2)}</td></tr>`;
       });
+
+      document.getElementById('bom-costo-total').innerText = `$${granTotal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} USD`;
       window.materialesExport = materiales;
     }
 
     function exportarCSV() {
-      let csv = "Item de Material,Cantidad,Unidad\n";
-      window.materialesExport.forEach(m => { csv += `"${m.item}",${m.cant},"${m.unid}"\n`; });
+      let csv = "Item de Material,Cantidad,Unidad,Precio Unitario USD,Total USD\n";
+      window.materialesExport.forEach(m => {
+        csv += `"${m.item}",${m.cant},"${m.unid}",${m.precio},${(m.cant * m.precio).toFixed(2)}\n`;
+      });
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `BOM_FTTH_${new Date().toISOString().slice(0,10)}.csv`;
+      a.download = `Presupuesto_FTTH_${new Date().toISOString().slice(0,10)}.csv`;
       a.click();
+    }
+
+    // PERSISTENCIA LOCAL (GUARDAR / CARGAR RED)
+    function guardarEnLocalStorage() {
+      const data = { redCoords, postesCount, totalClientes, totalMetrosDrop, ctos, dropsList };
+      localStorage.setItem('FTTX_PROJECT_DATA', JSON.stringify(data));
+    }
+
+    function exportarProyectoJSON() {
+      const data = { redCoords, postesCount, totalClientes, totalMetrosDrop, ctos, dropsList };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Proyecto_Red_FTTH_${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+    }
+
+    function importarProyectoJSON(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const data = JSON.parse(event.target.result);
+          redCoords = data.redCoords || redCoords;
+          postesCount = data.postesCount || postesCount;
+          totalClientes = data.totalClientes || totalClientes;
+          totalMetrosDrop = data.totalMetrosDrop || totalMetrosDrop;
+          ctos = data.ctos || ctos;
+          dropsList = data.dropsList || [];
+
+          cableLine.setLatLngs(redCoords);
+          refrescarMarcadores();
+          actualizarBOM();
+          alert("✅ Proyecto cargado con éxito.");
+        } catch (err) {
+          alert("❌ Error al leer el archivo JSON.");
+        }
+      };
+      reader.readAsText(file);
     }
 
     function simularCorte() {
@@ -626,6 +750,7 @@
       document.getElementById('net-status').innerText = 'ONLINE';
     }
 
+    // Carga inicial
     actualizarBOM();
   </script>
 </body>
