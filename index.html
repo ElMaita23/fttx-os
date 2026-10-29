@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FTTx Next-Gen OS | GIS & Splice Engine</title>
   
-  <!-- Leaflet CSS & JS (Ultra-estable, compatible con 100% de dispositivos) -->
+  <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
@@ -38,9 +38,9 @@
     .badge-fail { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #dc2626; }
 
     /* MAPA */
-    #map { flex: 1; height: 100%; background: #0b0f19; }
+    #map { flex: 1; height: 100%; background: #1e293b; }
 
-    /* MODAL DE EMPALMES (SPLICE MATRIX ENGINE) */
+    /* MODAL DE EMPALMES */
     #splice-modal {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px);
@@ -80,7 +80,7 @@
   <!-- PANEL LATERAL -->
   <div id="sidebar">
     <div class="header">
-      <h2>FTTx OS Engine v0.2</h2>
+      <h2>FTTx OS Engine v0.3</h2>
       <p>Superando OZmap | Topología & Balance Óptico</p>
     </div>
     <div class="content">
@@ -93,7 +93,7 @@
 
       <div class="card" id="element-details">
         <h3>Elemento Seleccionado</h3>
-        <p style="font-size: 12px; color: #94a3b8;">Haz clic en una <strong>CTO verde</strong> o en el <strong>Cable cyan</strong> en el mapa.</p>
+        <p style="font-size: 12px; color: #94a3b8;">Haz clic en una <strong>CTO verde</strong> o en el <strong>Cable cyan</strong> en el mapa satelital.</p>
       </div>
 
       <div class="card">
@@ -154,9 +154,7 @@
         <!-- PUERTOS DROP OUT -->
         <div class="tray-col">
           <h4>Puertos Drop SC/APC (Out)</h4>
-          <div id="ports-list" style="display: flex; flex-direction: column; gap: 6px;">
-            <!-- Generado por JS -->
-          </div>
+          <div id="ports-list" style="display: flex; flex-direction: column; gap: 6px;"></div>
         </div>
 
       </div>
@@ -164,35 +162,46 @@
   </div>
 
   <script>
-    // 1. Inicializar Leaflet con mapa base oscuro CartoDB Dark Matter
-    const map = L.map('map', { zoomControl: true }).setView([10.481, -66.882], 15);
-
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
-      subdomains: 'abcd',
+    // 1. Capas Cartográficas 100% Libres de API Key
+    const satelite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri',
       maxZoom: 19
-    }).addTo(map);
+    });
 
-    // 2. Definición de Red FTTH (Topología)
+    const calles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+      maxZoom: 19
+    });
+
+    // Iniciar con la vista satelital
+    const map = L.map('map', { 
+      center: [10.481, -66.882], 
+      zoom: 16,
+      layers: [satelite] 
+    });
+
+    // Selector de Capas arriba a la derecha
+    L.control.layers({ "Satélite HD (Esri)": satelite, "Mapa de Calles (OSM)": calles }).addTo(map);
+
+    // 2. Red FTTH (Topología)
     const troncalCoords = [[10.482, -66.885], [10.480, -66.881]];
     const distCoords = [[10.480, -66.881], [10.478, -66.877]];
 
-    // Cables (Polylines)
     const cableTroncal = L.polyline(troncalCoords, { color: '#00d2ff', weight: 4 }).addTo(map);
     const cableDist = L.polyline(distCoords, { color: '#00d2ff', weight: 4 }).addTo(map);
 
     // OLT (Punto Dorado)
     const oltMarker = L.circleMarker([10.482, -66.885], {
-      radius: 9, fillColor: '#f59e0b', color: '#fff', weight: 2, fillOpacity: 1
+      radius: 10, fillColor: '#f59e0b', color: '#fff', weight: 2, fillOpacity: 1
     }).addTo(map);
 
     // CTOs (Puntos Verdes Esmeralda)
     const cto1Marker = L.circleMarker([10.480, -66.881], {
-      radius: 8, fillColor: '#10b981', color: '#fff', weight: 2, fillOpacity: 1
+      radius: 9, fillColor: '#10b981', color: '#fff', weight: 2, fillOpacity: 1
     }).addTo(map);
 
     const cto2Marker = L.circleMarker([10.478, -66.877], {
-      radius: 8, fillColor: '#10b981', color: '#fff', weight: 2, fillOpacity: 1
+      radius: 9, fillColor: '#10b981', color: '#fff', weight: 2, fillOpacity: 1
     }).addTo(map);
 
     // 3. Interacciones y Clics
@@ -223,7 +232,7 @@
     cto1Marker.on('click', () => seleccionarCTO('CTO-01', 650, 6, 8));
     cto2Marker.on('click', () => seleccionarCTO('CTO-02', 1000, 4, 8));
 
-    // 4. Lógica de la Bandeja de Empalmes (Splice Tray)
+    // 4. Lógica de la Bandeja de Empalmes
     function abrirDiagrama(id) {
       document.getElementById('modal-title').innerText = `Bandeja de Empalme Interna: ${id}`;
       document.getElementById('splice-modal').style.display = 'flex';
