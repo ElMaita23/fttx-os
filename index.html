@@ -2,66 +2,169 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>FTTx Next-Gen GIS - Prototipo v0.1</title>
-  <!-- Mapbox GL / MapLibre CDN -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FTTx Next-Gen GIS & Splice Engine</title>
+  <!-- MapLibre GL CDN -->
   <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
   <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-    body { display: flex; height: 100vh; overflow: hidden; background: #121820; color: #fff; }
-    #sidebar { width: 340px; background: #1a222d; border-right: 1px solid #2a3544; display: flex; flex-direction: column; z-index: 10; }
-    #map { flex: 1; height: 100%; position: relative; }
-    .header { padding: 16px; background: #0f141c; border-bottom: 1px solid #2a3544; }
-    .header h2 { font-size: 16px; color: #00d2ff; }
-    .header p { font-size: 11px; color: #8899a6; margin-top: 4px; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+    body { display: flex; height: 100vh; overflow: hidden; background: #0b0f17; color: #e2e8f0; }
+    
+    /* SIDEBAR */
+    #sidebar { width: 360px; background: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; z-index: 10; }
+    .header { padding: 18px; background: #090d14; border-bottom: 1px solid #1f2937; }
+    .header h2 { font-size: 17px; color: #38bdf8; font-weight: 700; letter-spacing: -0.5px; }
+    .header p { font-size: 11px; color: #94a3b8; margin-top: 4px; }
     .content { padding: 16px; flex: 1; overflow-y: auto; }
-    .card { background: #222c3a; border-radius: 6px; padding: 12px; margin-bottom: 12px; border: 1px solid #2c3a4d; }
-    .card h3 { font-size: 13px; margin-bottom: 8px; color: #38bdf8; display: flex; justify-content: space-between; }
-    .stat-row { display: flex; justify-content: space-between; margin: 4px 0; font-size: 12px; color: #cbd5e1; }
-    .stat-val { font-weight: bold; color: #fff; }
-    .btn { width: 100%; padding: 10px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 12px; transition: 0.2s; }
-    .btn-danger { background: #ef4444; color: white; margin-top: 8px; }
-    .btn-danger:hover { background: #dc2626; }
-    .btn-success { background: #10b981; color: white; margin-top: 8px; }
-    .btn-success:hover { background: #059669; }
-    .badge { padding: 2px 6px; border-radius: 4px; font-size: 10px; font-weight: bold; }
-    .badge-ok { background: #065f46; color: #34d399; }
-    .badge-fail { background: #7f1d1d; color: #f87171; }
+    
+    .card { background: #1a2234; border-radius: 8px; padding: 14px; margin-bottom: 14px; border: 1px solid #283548; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
+    .card h3 { font-size: 13px; margin-bottom: 10px; color: #60a5fa; display: flex; justify-content: space-between; align-items: center; }
+    .stat-row { display: flex; justify-content: space-between; margin: 6px 0; font-size: 12px; color: #94a3b8; }
+    .stat-val { font-weight: 600; color: #f1f5f9; }
+    
+    .btn { width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn-primary { background: #2563eb; color: white; }
+    .btn-primary:hover { background: #1d4ed8; }
+    .btn-danger { background: #dc2626; color: white; margin-top: 8px; }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-success { background: #059669; color: white; margin-top: 8px; }
+    .btn-success:hover { background: #047857; }
+    
+    .badge { padding: 3px 8px; border-radius: 9999px; font-size: 10px; font-weight: 700; }
+    .badge-ok { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #059669; }
+    .badge-fail { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #dc2626; }
+    
+    /* MAPA */
+    #map { flex: 1; height: 100%; position: relative; }
+
+    /* MODAL DE EMPALMES (SPLICE MATRIX ENGINE) */
+    #splice-modal {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px);
+      z-index: 100; display: none; align-items: center; justify-content: center;
+    }
+    .modal-box {
+      width: 92%; max-width: 1100px; height: 85vh; background: #0f172a;
+      border: 1px solid #334155; border-radius: 12px; display: flex; flex-direction: column;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); overflow: hidden;
+    }
+    .modal-header {
+      padding: 16px 24px; background: #090d16; border-bottom: 1px solid #334155;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .modal-header h2 { font-size: 16px; color: #38bdf8; }
+    .close-btn { background: transparent; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; }
+    .close-btn:hover { color: #fff; }
+    
+    .modal-body { flex: 1; display: grid; grid-template-columns: 280px 1fr 280px; gap: 16px; padding: 20px; overflow-y: auto; background: #0b1120; }
+    
+    /* Bandeja & Fibra Elements */
+    .tray-col { background: #131d31; border: 1px solid #1e293b; border-radius: 8px; padding: 14px; display: flex; flex-direction: column; }
+    .tray-col h4 { font-size: 12px; color: #94a3b8; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; }
+    
+    .fiber-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 6px 8px; background: #1e293b; border-radius: 6px; font-size: 12px; }
+    .fiber-color { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.4); }
+    .color-blue { background: #2563eb; }
+    .color-orange { background: #f97316; }
+    .color-green { background: #16a34a; }
+    .color-brown { background: #854d0e; }
+    
+    .splitter-box { background: #1e293b; border: 1px solid #38bdf8; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; margin: auto 0; }
+    .port-btn { padding: 6px 12px; font-size: 11px; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #cbd5e1; cursor: pointer; width: 100%; text-align: left; display: flex; justify-content: space-between; }
+    .port-btn:hover { border-color: #38bdf8; }
+    .port-active { border-color: #10b981; background: rgba(16, 185, 129, 0.1); color: #34d399; }
   </style>
 </head>
 <body>
 
+  <!-- PANEL LATERAL -->
   <div id="sidebar">
     <div class="header">
-      <h2>FTTx OS Engine (Alpha)</h2>
-      <p>Superando OZmap: Grafos y Balance en Tiempo Real</p>
+      <h2>FTTx OS Engine v0.2</h2>
+      <p>Cálculo Óptico + Diagramas de Empalme Inteligentes</p>
     </div>
     <div class="content">
       <div class="card">
         <h3>Telemetría GPON (1490nm) <span class="badge badge-ok" id="net-status">ONLINE</span></h3>
-        <div class="stat-row"><span>Potencia TX OLT:</span><span class="stat-val">+4.50 dBm (C+)</span></div>
+        <div class="stat-row"><span>Potencia TX OLT:</span><span class="stat-val">+4.50 dBm</span></div>
         <div class="stat-row"><span>Atenuación Fibra:</span><span class="stat-val">0.22 dB/km</span></div>
-        <div class="stat-row"><span>Pérdida Splitter 1:8:</span><span class="stat-val">10.5 dB</span></div>
+        <div class="stat-row"><span>Splitter Primario:</span><span class="stat-val">PLC 1:8 (-10.5 dB)</span></div>
       </div>
 
       <div class="card" id="element-details">
         <h3>Elemento Seleccionado</h3>
-        <p style="font-size: 12px; color: #94a3b8;">Haz clic en una CTO o en el cable troncal en el mapa para inspeccionar.</p>
+        <p style="font-size: 12px; color: #94a3b8;">Haz clic en una CTO o en el Cable en el mapa para inspeccionar.</p>
       </div>
 
       <div class="card">
-        <h3>Prueba de Resiliencia / Falla</h3>
-        <p style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">Simula una rotura con retroexcavadora en el tramo troncal para ver el cálculo de impacto de clientes.</p>
-        <button class="btn btn-danger" onclick="simularCorte()">Simular Corte de Cable Troncal</button>
-        <button class="btn btn-success" onclick="restaurarRed()">Restaurar Red</button>
+        <h3>Simulación de Eventos</h3>
+        <button class="btn btn-danger" onclick="simularCorte()">Simular Rotura de Fibra</button>
+        <button class="btn btn-success" onclick="restaurarRed()">Restaurar Enlace</button>
       </div>
     </div>
   </div>
 
+  <!-- MAPA GIS -->
   <div id="map"></div>
 
+  <!-- MODAL DE DIAGRAMA DE EMPALMES (SPLICE TRAY ENGINE) -->
+  <div id="splice-modal">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2 id="modal-title">Bandeja de Empalme Interna: CTO-01</h2>
+        <button class="close-btn" onclick="cerrarDiagrama()">&times;</button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- COLUMNA 1: CABLE FEEDER ENTRANTE -->
+        <div class="tray-col">
+          <h4>Cable Distribución (In)</h4>
+          <div class="fiber-row">
+            <div class="fiber-color color-blue"></div>
+            <span>H1 - Azul (Activo)</span>
+          </div>
+          <div class="fiber-row">
+            <div class="fiber-color color-orange"></div>
+            <span>H2 - Naranja (Paso)</span>
+          </div>
+          <div class="fiber-row">
+            <div class="fiber-color color-green"></div>
+            <span>H3 - Verde (Reserva)</span>
+          </div>
+          <div class="fiber-row">
+            <div class="fiber-color color-brown"></div>
+            <span>H4 - Marrón (Reserva)</span>
+          </div>
+          <button class="btn btn-primary" style="margin-top: auto;" onclick="autoFusiones()">⚡ Auto-Empalme 1-Click</button>
+        </div>
+
+        <!-- COLUMNA 2: BANDEJA Y SPLITTER PLC -->
+        <div class="tray-col" style="background: #0d1525; border-color: #38bdf8;">
+          <h4>Bandeja de Fusión & Splitter</h4>
+          <div class="splitter-box">
+            <span style="font-size: 12px; font-weight: bold; color: #38bdf8;">SPLITTER PLC 1:8</span>
+            <div style="font-size: 10px; color: #94a3b8; text-align: center;">Pérdida Inserción: ~10.5 dB<br>Fusión Manguito: 0.05 dB</div>
+            <div id="fused-status" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #334155; color: #94a3b8; margin-top: 6px;">
+              Entrada IN: Desconectada
+            </div>
+          </div>
+        </div>
+
+        <!-- COLUMNA 3: PUERTOS DROP DE CLIENTES -->
+        <div class="tray-col">
+          <h4>Puertos Drop SC/APC (Out)</h4>
+          <div id="ports-list" style="display: flex; flex-direction: column; gap: 6px;">
+            <!-- Generado por JS -->
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
   <script>
-    // Inicializar mapa MapLibre (OpenStreetMap tiles sin claves requeridas)
+    // Inicializar Mapa
     const map = new maplibregl.Map({
       container: 'map',
       style: {
@@ -71,43 +174,31 @@
             type: 'raster',
             tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
             tileSize: 256,
-            attribution: '&copy; OpenStreetMap Contributors'
+            attribution: '&copy; OpenStreetMap'
           }
         },
-        layers: [{
-          id: 'osm-layer',
-          type: 'raster',
-          source: 'osm',
-          minzoom: 0,
-          maxzoom: 19
-        }]
+        layers: [{ id: 'osm-layer', type: 'raster', source: 'osm' }]
       },
-      center: [-66.88, 10.48], // Coordenadas de ejemplo (Caracas)
+      center: [-66.882, 10.481],
       zoom: 15
     });
 
-    // Topología de red de prueba en GeoJSON
     const redData = {
       type: "FeatureCollection",
       features: [
-        // OLT
         { type: "Feature", properties: { id: "OLT-01", tipo: "OLT", potencia_tx: 4.5 }, geometry: { type: "Point", coordinates: [-66.885, 10.482] } },
-        // Troncal
-        { type: "Feature", properties: { id: "CABLE-TRONCAL", tipo: "Cable", capacidad: 48, estado: "OK", len_m: 650 }, geometry: { type: "LineString", coordinates: [[-66.885, 10.482], [-66.881, 10.480]] } },
-        // CTO 1
+        { type: "Feature", properties: { id: "TRONCAL-01", tipo: "Cable", estado: "OK", len_m: 650 }, geometry: { type: "LineString", coordinates: [[-66.885, 10.482], [-66.881, 10.480]] } },
         { type: "Feature", properties: { id: "CTO-01", tipo: "CTO", split: "1:8", dist_m: 650, capacidad: 8, ocupados: 6 }, geometry: { type: "Point", coordinates: [-66.881, 10.480] } },
-        // Distribución 1
-        { type: "Feature", properties: { id: "DIST-01", tipo: "Cable", capacidad: 12, estado: "OK", len_m: 350 }, geometry: { type: "LineString", coordinates: [[-66.881, 10.480], [-66.877, 10.478]] } },
-        // CTO 2
+        { type: "Feature", properties: { id: "DIST-01", tipo: "Cable", estado: "OK", len_m: 350 }, geometry: { type: "LineString", coordinates: [[-66.881, 10.480], [-66.877, 10.478]] } },
         { type: "Feature", properties: { id: "CTO-02", tipo: "CTO", split: "1:8", dist_m: 1000, capacidad: 8, ocupados: 4 }, geometry: { type: "Point", coordinates: [-66.877, 10.478] } }
       ]
     };
 
+    let selectedCto = null;
+
     map.on('load', () => {
-      // Cargar datos espaciales
       map.addSource('red-ftth', { type: 'geojson', data: redData });
 
-      // Línea de Cables
       map.addLayer({
         id: 'cables-layer',
         type: 'line',
@@ -119,7 +210,6 @@
         }
       });
 
-      // Puntos (Cajas / OLT)
       map.addLayer({
         id: 'nodos-layer',
         type: 'circle',
@@ -133,50 +223,40 @@
         }
       });
 
-      // Click en elementos
       map.on('click', 'nodos-layer', (e) => {
         const props = e.features[0].properties;
         const panel = document.getElementById('element-details');
         
-        if(props.tipo === 'CTO') {
-          // Cálculo dinámico de balance óptico
+        if (props.tipo === 'CTO') {
+          selectedCto = props;
           const perdidaFibra = (props.dist_m / 1000) * 0.22;
-          const perdidaSplitter = 10.5;
-          const perdidaEmpalmes = 0.2; // 2 fusiones promedio
-          const rxTeorica = (4.5 - (perdidaFibra + perdidaSplitter + perdidaEmpalmes)).toFixed(2);
+          const rxTeorica = (4.5 - (perdidaFibra + 10.5 + 0.2)).toFixed(2);
 
           panel.innerHTML = `
             <h3>Detalle: ${props.id}</h3>
             <div class="stat-row"><span>Tipo:</span><span class="stat-val">CTO Conectorizada</span></div>
-            <div class="stat-row"><span>Puertos:</span><span class="stat-val">${props.ocupados}/${props.capacidad} Clientes</span></div>
-            <div class="stat-row"><span>Distancia OLT:</span><span class="stat-val">${props.dist_m} metros</span></div>
-            <div class="stat-row"><span>Atenuación Acumulada:</span><span class="stat-val">-${(4.5 - rxTeorica).toFixed(2)} dB</span></div>
-            <div class="stat-row"><span>Potencia RX Estimada:</span><span class="stat-val" style="color: #34d399">${rxTeorica} dBm</span></div>
-          `;
-        } else {
-          panel.innerHTML = `
-            <h3>Detalle: ${props.id}</h3>
-            <div class="stat-row"><span>Tipo:</span><span class="stat-val">Cabecera OLT</span></div>
-            <div class="stat-row"><span>Potencia TX:</span><span class="stat-val">+${props.potencia_tx} dBm</span></div>
+            <div class="stat-row"><span>Puertos Ocupados:</span><span class="stat-val">${props.ocupados}/${props.capacidad}</span></div>
+            <div class="stat-row"><span>Distancia a OLT:</span><span class="stat-val">${props.dist_m} m</span></div>
+            <div class="stat-row"><span>Atenuación Est.:</span><span class="stat-val">-${(4.5 - rxTeorica).toFixed(2)} dB</span></div>
+            <div class="stat-row"><span>Potencia RX Media:</span><span class="stat-val" style="color: #34d399">${rxTeorica} dBm</span></div>
+            <button class="btn btn-primary" style="margin-top: 10px;" onclick="abrirDiagrama('${props.id}')">🛠️ Abrir Diagrama Interno</button>
           `;
         }
       });
     });
 
-    function simularCorte() {
-      redData.features[1].properties.estado = 'CUT';
-      map.getSource('red-ftth').setData(redData);
-      document.getElementById('net-status').className = 'badge badge-fail';
-      document.getElementById('net-status').innerText = 'CORTE DETECTADO';
-      alert('¡Alerta de Rotura! Corte a 650m de OLT-01. Afectando CTO-01 y CTO-02 (10 Clientes sin servicio).');
+    // Control del Modal de Diagrama de Empalme
+    function abrirDiagrama(id) {
+      document.getElementById('modal-title').innerText = `Bandeja de Empalme Interna: ${id}`;
+      document.getElementById('splice-modal').style.display = 'flex';
+      renderizarPuertos(false);
     }
 
-    function restaurarRed() {
-      redData.features[1].properties.estado = 'OK';
-      map.getSource('red-ftth').setData(redData);
-      document.getElementById('net-status').className = 'badge badge-ok';
-      document.getElementById('net-status').innerText = 'ONLINE';
+    function cerrarDiagrama() {
+      document.getElementById('splice-modal').style.display = 'none';
     }
-  </script>
-</body>
-</html>
+
+    function renderizarPuertos(conectado) {
+      const container = document.getElementById('ports-list');
+      container.innerHTML = '';
+      for (let i = 1; i <=
