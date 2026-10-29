@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FTTx Next-Gen OS | GIS & Splice Engine</title>
+  <title>FTTx Next-Gen OS | GIS, Splice & Civil BOM</title>
   
   <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -14,28 +14,43 @@
     body { display: flex; height: 100vh; overflow: hidden; background: #0f172a; color: #f8fafc; }
 
     /* PANEL LATERAL */
-    #sidebar { width: 360px; min-width: 360px; background: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; z-index: 1000; box-shadow: 4px 0 10px rgba(0,0,0,0.5); }
-    .header { padding: 18px; background: #090d16; border-bottom: 1px solid #1f2937; }
-    .header h2 { font-size: 17px; color: #38bdf8; font-weight: 700; letter-spacing: -0.5px; }
-    .header p { font-size: 11px; color: #94a3b8; margin-top: 4px; }
-    .content { padding: 16px; flex: 1; overflow-y: auto; }
+    #sidebar { width: 380px; min-width: 380px; background: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; z-index: 1000; box-shadow: 4px 0 10px rgba(0,0,0,0.5); }
+    .header { padding: 16px; background: #090d16; border-bottom: 1px solid #1f2937; }
+    .header h2 { font-size: 16px; color: #38bdf8; font-weight: 700; letter-spacing: -0.5px; }
+    .header p { font-size: 11px; color: #94a3b8; margin-top: 2px; }
 
-    .card { background: #1e293b; border-radius: 8px; padding: 14px; margin-bottom: 14px; border: 1px solid #334155; }
-    .card h3 { font-size: 13px; margin-bottom: 10px; color: #38bdf8; display: flex; justify-content: space-between; align-items: center; }
-    .stat-row { display: flex; justify-content: space-between; margin: 6px 0; font-size: 12px; color: #94a3b8; }
+    /* PESTAÑAS */
+    .tabs { display: flex; background: #0b1120; border-bottom: 1px solid #1f2937; }
+    .tab-btn { flex: 1; padding: 10px; background: transparent; border: none; color: #94a3b8; font-size: 12px; font-weight: 600; cursor: pointer; border-bottom: 2px solid transparent; transition: 0.2s; }
+    .tab-btn.active { color: #38bdf8; border-bottom-color: #38bdf8; background: rgba(56, 189, 248, 0.05); }
+
+    .content { padding: 14px; flex: 1; overflow-y: auto; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .card { background: #1e293b; border-radius: 8px; padding: 12px; margin-bottom: 12px; border: 1px solid #334155; }
+    .card h3 { font-size: 12px; margin-bottom: 8px; color: #38bdf8; display: flex; justify-content: space-between; align-items: center; text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-row { display: flex; justify-content: space-between; margin: 5px 0; font-size: 12px; color: #94a3b8; }
     .stat-val { font-weight: 600; color: #f1f5f9; }
 
-    .btn { width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .btn { width: 100%; padding: 9px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
     .btn-primary { background: #2563eb; color: white; }
     .btn-primary:hover { background: #1d4ed8; }
-    .btn-danger { background: #dc2626; color: white; margin-top: 8px; }
+    .btn-danger { background: #dc2626; color: white; margin-top: 6px; }
     .btn-danger:hover { background: #b91c1c; }
-    .btn-success { background: #059669; color: white; margin-top: 8px; }
+    .btn-success { background: #059669; color: white; margin-top: 6px; }
     .btn-success:hover { background: #047857; }
+    .btn-warning { background: #d97706; color: white; margin-bottom: 10px; }
+    .btn-warning:hover { background: #b45309; }
 
-    .badge { padding: 3px 8px; border-radius: 9999px; font-size: 10px; font-weight: 700; }
+    .badge { padding: 2px 7px; border-radius: 9999px; font-size: 10px; font-weight: 700; }
     .badge-ok { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #059669; }
     .badge-fail { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #dc2626; }
+
+    /* TABLA BOM */
+    .bom-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 6px; }
+    .bom-table th { text-align: left; padding: 6px; background: #0f172a; color: #94a3b8; font-weight: 600; }
+    .bom-table td { padding: 6px; border-bottom: 1px solid #334155; color: #e2e8f0; }
 
     /* MAPA */
     #map { flex: 1; height: 100%; background: #1e293b; }
@@ -51,25 +66,18 @@
       border: 1px solid #334155; border-radius: 12px; display: flex; flex-direction: column;
       box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8); overflow: hidden;
     }
-    .modal-header {
-      padding: 16px 24px; background: #090d16; border-bottom: 1px solid #334155;
-      display: flex; justify-content: space-between; align-items: center;
-    }
+    .modal-header { padding: 16px 24px; background: #090d16; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
     .modal-header h2 { font-size: 16px; color: #38bdf8; }
     .close-btn { background: transparent; border: none; color: #94a3b8; font-size: 24px; cursor: pointer; }
-    .close-btn:hover { color: #fff; }
-
     .modal-body { flex: 1; display: grid; grid-template-columns: 280px 1fr 280px; gap: 16px; padding: 20px; overflow-y: auto; background: #0b1120; }
     .tray-col { background: #131d31; border: 1px solid #1e293b; border-radius: 8px; padding: 14px; display: flex; flex-direction: column; }
-    .tray-col h4 { font-size: 12px; color: #94a3b8; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; }
-
+    .tray-col h4 { font-size: 12px; color: #94a3b8; text-transform: uppercase; margin-bottom: 12px; }
     .fiber-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 7px 10px; background: #1e293b; border-radius: 6px; font-size: 12px; }
     .fiber-color { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.4); }
     .color-blue { background: #2563eb; }
     .color-orange { background: #f97316; }
     .color-green { background: #16a34a; }
     .color-brown { background: #854d0e; }
-
     .splitter-box { background: #1e293b; border: 1px solid #38bdf8; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; margin: auto 0; }
     .port-btn { padding: 6px 12px; font-size: 11px; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #cbd5e1; width: 100%; text-align: left; display: flex; justify-content: space-between; }
     .port-active { border-color: #10b981; background: rgba(16, 185, 129, 0.15); color: #34d399; }
@@ -77,13 +85,20 @@
 </head>
 <body>
 
-  <!-- PANEL LATERAL -->
+  <!-- PANEL LATERAL CON PESTAÑAS -->
   <div id="sidebar">
     <div class="header">
-      <h2>FTTx OS Engine v0.3</h2>
-      <p>Superando OZmap | Topología & Balance Óptico</p>
+      <h2>FTTx OS Engine v0.4</h2>
+      <p>Topología Óptica & Ingeniería Civil de Planta Externa</p>
     </div>
-    <div class="content">
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="cambiarTab('telemetria')">📡 Telemetría</button>
+      <button class="tab-btn" onclick="cambiarTab('bom')">🏗️ Obra Civil & BOM</button>
+    </div>
+
+    <!-- PESTAÑA 1: TELEMETRÍA Y GIS -->
+    <div class="content tab-content active" id="tab-telemetria">
       <div class="card">
         <h3>Telemetría GPON (1490nm) <span class="badge badge-ok" id="net-status">ONLINE</span></h3>
         <div class="stat-row"><span>Potencia TX OLT:</span><span class="stat-val">+4.50 dBm</span></div>
@@ -98,9 +113,33 @@
 
       <div class="card">
         <h3>Simulación de Eventos</h3>
-        <p style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">Corta el cable para ver la respuesta instantánea del grafo de red.</p>
         <button class="btn btn-danger" onclick="simularCorte()">⚠️ Simular Rotura de Troncal</button>
         <button class="btn btn-success" onclick="restaurarRed()">🔄 Restaurar Enlace</button>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 2: OBRA CIVIL Y BOM DINÁMICO -->
+    <div class="content tab-content" id="tab-bom">
+      <button class="btn btn-warning" id="btn-draw" onclick="toggleModoDibujo()">✏️ Activar Modo Trazo de Red</button>
+      
+      <div class="card">
+        <h3>Resumen Métrico de Despliegue</h3>
+        <div class="stat-row"><span>Longitud Total Cable:</span><span class="stat-val" id="bom-cable-len">1,000 m</span></div>
+        <div class="stat-row"><span>Total Postes / Vértices:</span><span class="stat-val" id="bom-postes">3 postes</span></div>
+        <div class="stat-row"><span>Total CTOs Desplegadas:</span><span class="stat-val" id="bom-ctos">2 cajas</span></div>
+      </div>
+
+      <div class="card">
+        <h3>Explosión de Materiales (BOM)</h3>
+        <table class="bom-table">
+          <thead>
+            <tr><th>Ítem de Material</th><th>Cant.</th><th>Unid.</th></tr>
+          </thead>
+          <tbody id="bom-table-body">
+            <!-- Generado por JS -->
+          </tbody>
+        </table>
+        <button class="btn btn-primary" style="margin-top: 12px;" onclick="exportarCSV()">📥 Exportar BOM a Excel (CSV)</button>
       </div>
     </div>
   </div>
@@ -108,7 +147,7 @@
   <!-- MAPA GIS -->
   <div id="map"></div>
 
-  <!-- MODAL DE DIAGRAMA DE EMPALMES -->
+  <!-- MODAL DE EMPALMES -->
   <div id="splice-modal">
     <div class="modal-box">
       <div class="modal-header">
@@ -116,108 +155,161 @@
         <button class="close-btn" onclick="cerrarDiagrama()">&times;</button>
       </div>
       <div class="modal-body">
-        
-        <!-- CABLE IN -->
         <div class="tray-col">
           <h4>Cable Distribución (In)</h4>
-          <div class="fiber-row">
-            <div class="fiber-color color-blue"></div>
-            <span>H1 - Azul (Activo)</span>
-          </div>
-          <div class="fiber-row">
-            <div class="fiber-color color-orange"></div>
-            <span>H2 - Naranja (Paso)</span>
-          </div>
-          <div class="fiber-row">
-            <div class="fiber-color color-green"></div>
-            <span>H3 - Verde (Reserva)</span>
-          </div>
-          <div class="fiber-row">
-            <div class="fiber-color color-brown"></div>
-            <span>H4 - Marrón (Reserva)</span>
-          </div>
+          <div class="fiber-row"><div class="fiber-color color-blue"></div><span>H1 - Azul (Activo)</span></div>
+          <div class="fiber-row"><div class="fiber-color color-orange"></div><span>H2 - Naranja (Paso)</span></div>
+          <div class="fiber-row"><div class="fiber-color color-green"></div><span>H3 - Verde (Reserva)</span></div>
+          <div class="fiber-row"><div class="fiber-color color-brown"></div><span>H4 - Marrón (Reserva)</span></div>
           <button class="btn btn-primary" style="margin-top: auto;" onclick="autoFusiones()">⚡ Auto-Empalme 1-Click</button>
         </div>
-
-        <!-- SPLITTER 1:8 -->
         <div class="tray-col" style="background: #0d1525; border-color: #38bdf8;">
           <h4>Bandeja & Splitter PLC</h4>
           <div class="splitter-box">
             <span style="font-size: 12px; font-weight: bold; color: #38bdf8;">SPLITTER PLC 1:8</span>
             <div style="font-size: 10px; color: #94a3b8; text-align: center;">Pérdida Inserción: 10.5 dB<br>Pérdida Empalme: 0.05 dB</div>
-            <div id="fused-status" style="font-size: 11px; padding: 6px 10px; border-radius: 4px; background: #334155; color: #94a3b8; margin-top: 6px; text-align: center;">
-              Entrada IN: Desconectada
-            </div>
+            <div id="fused-status" style="font-size: 11px; padding: 6px 10px; border-radius: 4px; background: #334155; color: #94a3b8; margin-top: 6px; text-align: center;">Entrada IN: Desconectada</div>
           </div>
         </div>
-
-        <!-- PUERTOS DROP OUT -->
         <div class="tray-col">
           <h4>Puertos Drop SC/APC (Out)</h4>
           <div id="ports-list" style="display: flex; flex-direction: column; gap: 6px;"></div>
         </div>
-
       </div>
     </div>
   </div>
 
   <script>
-    // 1. Capas Cartográficas 100% Libres de API Key
-    const satelite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
-      attribution: 'Tiles &copy; Esri',
-      maxZoom: 19
-    });
+    // 1. Capas Cartográficas Sin API Key
+    const satelite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri', maxZoom: 19 });
+    const calles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 19 });
 
-    const calles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-      maxZoom: 19
-    });
-
-    // Iniciar con la vista satelital
-    const map = L.map('map', { 
-      center: [10.481, -66.882], 
-      zoom: 16,
-      layers: [satelite] 
-    });
-
-    // Selector de Capas arriba a la derecha
+    const map = L.map('map', { center: [10.481, -66.882], zoom: 16, layers: [satelite] });
     L.control.layers({ "Satélite HD (Esri)": satelite, "Mapa de Calles (OSM)": calles }).addTo(map);
 
-    // 2. Red FTTH (Topología)
-    const troncalCoords = [[10.482, -66.885], [10.480, -66.881]];
-    const distCoords = [[10.480, -66.881], [10.478, -66.877]];
+    // 2. Estado de la Red y Datos Iniciales
+    let modoDibujo = false;
+    let redCoords = [[10.482, -66.885], [10.480, -66.881], [10.478, -66.877]];
+    let postesCount = 3;
+    let ctosCount = 2;
 
-    const cableTroncal = L.polyline(troncalCoords, { color: '#00d2ff', weight: 4 }).addTo(map);
-    const cableDist = L.polyline(distCoords, { color: '#00d2ff', weight: 4 }).addTo(map);
+    const cableLine = L.polyline(redCoords, { color: '#00d2ff', weight: 4 }).addTo(map);
 
-    // OLT (Punto Dorado)
-    const oltMarker = L.circleMarker([10.482, -66.885], {
-      radius: 10, fillColor: '#f59e0b', color: '#fff', weight: 2, fillOpacity: 1
-    }).addTo(map);
+    // OLT
+    const oltMarker = L.circleMarker([10.482, -66.885], { radius: 10, fillColor: '#f59e0b', color: '#fff', weight: 2, fillOpacity: 1 }).addTo(map);
+    // CTOs
+    const cto1Marker = L.circleMarker([10.480, -66.881], { radius: 9, fillColor: '#10b981', color: '#fff', weight: 2, fillOpacity: 1 }).addTo(map);
+    const cto2Marker = L.circleMarker([10.478, -66.877], { radius: 9, fillColor: '#10b981', color: '#fff', weight: 2, fillOpacity: 1 }).addTo(map);
 
-    // CTOs (Puntos Verdes Esmeralda)
-    const cto1Marker = L.circleMarker([10.480, -66.881], {
-      radius: 9, fillColor: '#10b981', color: '#fff', weight: 2, fillOpacity: 1
-    }).addTo(map);
+    // 3. Control de Pestañas
+    function cambiarTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      if(tab === 'telemetria') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('tab-telemetria').classList.add('active');
+      } else {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('tab-bom').classList.add('active');
+        actualizarBOM();
+      }
+    }
 
-    const cto2Marker = L.circleMarker([10.478, -66.877], {
-      radius: 9, fillColor: '#10b981', color: '#fff', weight: 2, fillOpacity: 1
-    }).addTo(map);
+    // 4. Modo Trazado Interactivo (Añadir Postes y Cable al hacer clic en el mapa)
+    function toggleModoDibujo() {
+      modoDibujo = !modoDibujo;
+      const btn = document.getElementById('btn-draw');
+      if (modoDibujo) {
+        btn.innerText = "🛑 Detener Trazo de Red";
+        btn.style.background = "#dc2626";
+        map.getContainer().style.cursor = "crosshair";
+      } else {
+        btn.innerText = "✏️ Activar Modo Trazo de Red";
+        btn.style.background = "#d97706";
+        map.getContainer().style.cursor = "";
+      }
+    }
 
-    // 3. Interacciones y Clics
-    oltMarker.on('click', () => {
-      document.getElementById('element-details').innerHTML = `
-        <h3>Detalle: OLT-Cabecera-01</h3>
-        <div class="stat-row"><span>Tipo:</span><span class="stat-val">Chassis GPON</span></div>
-        <div class="stat-row"><span>Puerto PON:</span><span class="stat-val">Slot 1 / Port 1</span></div>
-        <div class="stat-row"><span>Potencia TX:</span><span class="stat-val" style="color:#f59e0b;">+4.50 dBm</span></div>
-      `;
+    map.on('click', (e) => {
+      if (!modoDibujo) return;
+      const nuevoPunto = [e.latlng.lat, e.latlng.lng];
+      redCoords.push(nuevoPunto);
+      cableLine.setLatLngs(redCoords);
+      postesCount++;
+      ctosCount++;
+
+      // Agregar nueva CTO/Poste al mapa
+      const newMarker = L.circleMarker(nuevoPunto, {
+        radius: 9, fillColor: '#10b981', color: '#fff', weight: 2, fillOpacity: 1
+      }).addTo(map);
+      
+      const ctoName = `CTO-0${ctosCount}`;
+      newMarker.on('click', () => seleccionarCTO(ctoName, 1200 + (ctosCount * 250), 2, 8));
+
+      actualizarBOM();
     });
 
+    // 5. Motor de Explosión de Materiales (BOM)
+    function actualizarBOM() {
+      let totalMetros = 0;
+      for (let i = 0; i < redCoords.length - 1; i++) {
+        totalMetros += map.distance(redCoords[i], redCoords[i+1]);
+      }
+      totalMetros = Math.round(totalMetros);
+      const cableConReserva = Math.round(totalMetros * 1.15); // 15% de holgura y reservas de vano
+
+      // Algoritmo de Ferretería Civil
+      const retenciones = (postesCount * 2); // 2 retenciones por quiebre/remate
+      const suspensiones = Math.max(0, postesCount - 2); // suspensiones intermedias
+      const flejesMetros = Math.round(postesCount * 2.5); // 2.5m de fleje 3/4" por poste
+      const hebillas = postesCount * 2; // 2 hebillas por poste
+      const crucetas = Math.ceil(totalMetros / 400); // 1 cruceta cada 400m
+      const protectoresFusion = ctosCount * 8; // 8 manguitos por CTO
+
+      document.getElementById('bom-cable-len').innerText = `${cableConReserva.toLocaleString()} m (inc. 15% reserva)`;
+      document.getElementById('bom-postes').innerText = `${postesCount} postes`;
+      document.getElementById('bom-ctos').innerText = `${ctosCount} cajas`;
+
+      const materiales = [
+        { item: "Cable Óptico ADSS 24 FO G.652D", cant: cableConReserva, unid: "m" },
+        { item: "Herraje de Retención Preformado ADSS", cant: retenciones, unid: "pza" },
+        { item: "Herraje de Suspensión (Soporte J)", cant: suspensiones, unid: "pza" },
+        { item: "Cinta de Acero Inox 3/4\" (Band-it)", cant: flejesMetros, unid: "m" },
+        { item: "Hebillas de Acero Inox 3/4\"", cant: hebillas, unid: "pza" },
+        { item: "Crucetas de Reserva Técnica (Raquetas)", cant: crucetas, unid: "pza" },
+        { item: "Caja de Terminación Óptica (CTO 8P)", cant: ctosCount, unid: "pza" },
+        { item: "Splitter PLC 1:8 SC/APC Conectorizado", cant: ctosCount, unid: "pza" },
+        { item: "Manguitos Termocontraíbles de Fusión 60mm", cant: protectoresFusion, unid: "pza" }
+      ];
+
+      const tbody = document.getElementById('bom-table-body');
+      tbody.innerHTML = '';
+      materiales.forEach(m => {
+        tbody.innerHTML += `<tr><td>${m.item}</td><td style="font-weight: bold; color: #38bdf8;">${m.cant}</td><td>${m.unid}</td></tr>`;
+      });
+
+      window.materialesExport = materiales;
+    }
+
+    // Exportar a Excel (CSV)
+    function exportarCSV() {
+      let csv = "Item de Material,Cantidad,Unidad\n";
+      window.materialesExport.forEach(m => {
+        csv += `"${m.item}",${m.cant},"${m.unid}"\n`;
+      });
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `BOM_FTTH_Proyecto_${new Date().toISOString().slice(0,10)}.csv`;
+      a.click();
+    }
+
+    // 6. Interacciones y Clics
     function seleccionarCTO(id, dist, ocupados, cap) {
+      cambiarTab('telemetria');
       const perdidaFibra = (dist / 1000) * 0.22;
       const rxTeorica = (4.5 - (perdidaFibra + 10.5 + 0.2)).toFixed(2);
-
       document.getElementById('element-details').innerHTML = `
         <h3>Detalle: ${id}</h3>
         <div class="stat-row"><span>Tipo:</span><span class="stat-val">CTO Conectorizada</span></div>
@@ -229,35 +321,35 @@
       `;
     }
 
+    oltMarker.on('click', () => {
+      cambiarTab('telemetria');
+      document.getElementById('element-details').innerHTML = `
+        <h3>Detalle: OLT-Cabecera-01</h3>
+        <div class="stat-row"><span>Tipo:</span><span class="stat-val">Chassis GPON</span></div>
+        <div class="stat-row"><span>Puerto PON:</span><span class="stat-val">Slot 1 / Port 1</span></div>
+        <div class="stat-row"><span>Potencia TX:</span><span class="stat-val" style="color:#f59e0b;">+4.50 dBm</span></div>
+      `;
+    });
+
     cto1Marker.on('click', () => seleccionarCTO('CTO-01', 650, 6, 8));
     cto2Marker.on('click', () => seleccionarCTO('CTO-02', 1000, 4, 8));
 
-    // 4. Lógica de la Bandeja de Empalmes
+    // Modal de Empalmes
     function abrirDiagrama(id) {
       document.getElementById('modal-title').innerText = `Bandeja de Empalme Interna: ${id}`;
       document.getElementById('splice-modal').style.display = 'flex';
       renderizarPuertos(false);
     }
-
-    function cerrarDiagrama() {
-      document.getElementById('splice-modal').style.display = 'none';
-    }
-
+    function cerrarDiagrama() { document.getElementById('splice-modal').style.display = 'none'; }
     function renderizarPuertos(conectado) {
       const container = document.getElementById('ports-list');
       container.innerHTML = '';
       for (let i = 1; i <= 8; i++) {
         const pwr = conectado ? (-18.25 - (Math.random() * 0.3)).toFixed(2) : '--';
         const activeClass = conectado ? 'port-active' : '';
-        container.innerHTML += `
-          <div class="port-btn ${activeClass}">
-            <span>Puerto ${i} (Drop)</span>
-            <strong>${pwr} dBm</strong>
-          </div>
-        `;
+        container.innerHTML += `<div class="port-btn ${activeClass}"><span>Puerto ${i} (Drop)</span><strong>${pwr} dBm</strong></div>`;
       }
     }
-
     function autoFusiones() {
       const status = document.getElementById('fused-status');
       status.style.background = '#065f46';
@@ -265,20 +357,20 @@
       status.innerHTML = '✓ Hilo 1 Azul &rarr; Splitter IN (0.05 dB)';
       renderizarPuertos(true);
     }
-
-    // 5. Simulación de Falla / Corte
     function simularCorte() {
-      cableTroncal.setStyle({ color: '#ef4444', dashArray: '6, 6' });
+      cableLine.setStyle({ color: '#ef4444', dashArray: '6, 6' });
       document.getElementById('net-status').className = 'badge badge-fail';
       document.getElementById('net-status').innerText = 'CORTE DETECTADO';
-      alert('¡Alerta de OTDR! Rotura detectada a 650m de OLT. CTO-01 y CTO-02 caídas (10 clientes sin servicio).');
+      alert('¡Alerta de OTDR! Rotura detectada en la troncal. CTOs desconectadas.');
     }
-
     function restaurarRed() {
-      cableTroncal.setStyle({ color: '#00d2ff', dashArray: null });
+      cableLine.setStyle({ color: '#00d2ff', dashArray: null });
       document.getElementById('net-status').className = 'badge badge-ok';
       document.getElementById('net-status').innerText = 'ONLINE';
     }
+
+    // Inicializar BOM al cargar
+    actualizarBOM();
   </script>
 </body>
 </html>
