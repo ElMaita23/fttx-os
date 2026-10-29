@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FTTx Next-Gen OS | GIS, Splice & Schematic Engine</title>
+  <title>FTTx Next-Gen OS | GIS, Splice & Client Drops</title>
   
   <!-- Leaflet CSS & JS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -40,8 +40,10 @@
     .btn-danger:hover { background: #b91c1c; }
     .btn-success { background: #059669; color: white; margin-top: 6px; }
     .btn-success:hover { background: #047857; }
-    .btn-warning { background: #d97706; color: white; margin-bottom: 10px; }
+    .btn-warning { background: #d97706; color: white; margin-bottom: 8px; }
     .btn-warning:hover { background: #b45309; }
+    .btn-purple { background: #8b5cf6; color: white; margin-bottom: 8px; }
+    .btn-purple:hover { background: #7c3aed; }
 
     .badge { padding: 2px 7px; border-radius: 9999px; font-size: 10px; font-weight: 700; }
     .badge-ok { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #059669; }
@@ -53,9 +55,7 @@
 
     #map { flex: 1; height: 100%; background: #1e293b; }
 
-    /* ========================================================== */
-    /* MODAL DE EMPALMES VECTORIAL / ESQUEMÁTICO REALISTA        */
-    /* ========================================================== */
+    /* MODAL DE EMPALMES */
     #splice-modal {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0, 0, 0, 0.88); backdrop-filter: blur(6px);
@@ -66,38 +66,18 @@
       border: 1px solid #1e293b; border-radius: 14px; display: flex; flex-direction: column;
       box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.9); overflow: hidden;
     }
-    .modal-header {
-      padding: 14px 24px; background: #070a12; border-bottom: 1px solid #1e293b;
-      display: flex; justify-content: space-between; align-items: center;
-    }
-    .modal-header h2 { font-size: 15px; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+    .modal-header { padding: 14px 24px; background: #070a12; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; }
+    .modal-header h2 { font-size: 15px; color: #38bdf8; }
     .close-btn { background: transparent; border: none; color: #94a3b8; font-size: 24px; cursor: pointer; }
-    .close-btn:hover { color: #fff; }
+    .modal-toolbar { padding: 10px 24px; background: #0f172a; border-bottom: 1px solid #1e293b; display: flex; gap: 12px; align-items: center; font-size: 12px; }
+    .modal-body { flex: 1; position: relative; background: radial-gradient(#1e293b 1px, transparent 1px); background-size: 20px 20px; background-color: #080d1a; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    #schematic-svg { width: 100%; height: 100%; }
 
-    .modal-toolbar {
-      padding: 10px 24px; background: #0f172a; border-bottom: 1px solid #1e293b;
-      display: flex; gap: 12px; align-items: center; font-size: 12px;
-    }
-
-    .modal-body {
-      flex: 1; position: relative; background: radial-gradient(#1e293b 1px, transparent 1px);
-      background-size: 20px 20px; background-color: #080d1a; overflow: hidden;
-      display: flex; align-items: center; justify-content: center;
-    }
-
-    #schematic-svg {
-      width: 100%; height: 100%;
-    }
-
-    /* Animación Láser viajando por el hilo */
     @keyframes laserPulse {
       0% { stroke-dashoffset: 60; }
       100% { stroke-dashoffset: 0; }
     }
-    .fiber-active {
-      stroke-dasharray: 8, 4;
-      animation: laserPulse 1.2s linear infinite;
-    }
+    .fiber-active { stroke-dasharray: 8, 4; animation: laserPulse 1.2s linear infinite; }
   </style>
 </head>
 <body>
@@ -105,8 +85,8 @@
   <!-- PANEL LATERAL -->
   <div id="sidebar">
     <div class="header">
-      <h2>FTTx OS Engine v0.5</h2>
-      <p>Esquemáticos de Empalme Vectoriales & BOM Civil</p>
+      <h2>FTTx OS Engine v0.6</h2>
+      <p>Viabilidad Drop, Clientes ONT & Esquemáticos</p>
     </div>
 
     <div class="tabs">
@@ -114,18 +94,21 @@
       <button class="tab-btn" onclick="cambiarTab('bom')">🏗️ Obra Civil & BOM</button>
     </div>
 
-    <!-- PESTAÑA 1: TELEMETRÍA -->
+    <!-- PESTAÑA 1: TELEMETRÍA Y ACCIONES DE RED -->
     <div class="content tab-content active" id="tab-telemetria">
+      <!-- BOTÓN DE CONEXIÓN DE CLIENTE -->
+      <button class="btn btn-purple" id="btn-drop" onclick="toggleModoCliente()">🏠 Conectar Nuevo Cliente (Drop)</button>
+
       <div class="card">
         <h3>Telemetría GPON (1490nm) <span class="badge badge-ok" id="net-status">ONLINE</span></h3>
         <div class="stat-row"><span>Potencia TX OLT:</span><span class="stat-val">+4.50 dBm</span></div>
         <div class="stat-row"><span>Atenuación Fibra:</span><span class="stat-val">0.22 dB/km</span></div>
-        <div class="stat-row"><span>Splitter Primario:</span><span class="stat-val">PLC 1:8 (-10.5 dB)</span></div>
+        <div class="stat-row"><span>Clientes Conectados:</span><span class="stat-val" id="total-clientes">10 abonados</span></div>
       </div>
 
       <div class="card" id="element-details">
         <h3>Elemento Seleccionado</h3>
-        <p style="font-size: 12px; color: #94a3b8;">Haz clic en una <strong>CTO verde</strong> o en el <strong>Cable cyan</strong> en el mapa satelital.</p>
+        <p style="font-size: 12px; color: #94a3b8;">Haz clic en una <strong>CTO verde</strong>, un <strong>Cliente magenta</strong> o activa el botón de arriba para conectar un drop.</p>
       </div>
 
       <div class="card">
@@ -137,11 +120,12 @@
 
     <!-- PESTAÑA 2: OBRA CIVIL & BOM -->
     <div class="content tab-content" id="tab-bom">
-      <button class="btn btn-warning" id="btn-draw" onclick="toggleModoDibujo()">✏️ Activar Modo Trazo de Red</button>
+      <button class="btn btn-warning" id="btn-draw" onclick="toggleModoDibujo()">✏️ Modo Trazo Troncal/Postes</button>
       
       <div class="card">
         <h3>Resumen Métrico</h3>
-        <div class="stat-row"><span>Longitud Cable:</span><span class="stat-val" id="bom-cable-len">1,000 m</span></div>
+        <div class="stat-row"><span>Cable Distribución ADSS:</span><span class="stat-val" id="bom-cable-len">1,000 m</span></div>
+        <div class="stat-row"><span>Cable Drop de Clientes:</span><span class="stat-val" id="bom-drop-len">0 m</span></div>
         <div class="stat-row"><span>Total Postes:</span><span class="stat-val" id="bom-postes">3 postes</span></div>
         <div class="stat-row"><span>Total CTOs:</span><span class="stat-val" id="bom-ctos">2 cajas</span></div>
       </div>
@@ -160,13 +144,11 @@
   <!-- MAPA GIS -->
   <div id="map"></div>
 
-  <!-- ========================================================== -->
-  <!-- MODAL ESQUEMÁTICO DE EMPALMES (CANVAS SVG INTERACTIVO)      -->
-  <!-- ========================================================== -->
+  <!-- MODAL DE EMPALMES VECTORIAL -->
   <div id="splice-modal">
     <div class="modal-box">
       <div class="modal-header">
-        <h2 id="modal-title">📦 Diagrama Físico de Bandeja: CTO-01 (8 Puertos)</h2>
+        <h2 id="modal-title">📦 Diagrama Físico de Bandeja: CTO-01</h2>
         <button class="close-btn" onclick="cerrarDiagrama()">&times;</button>
       </div>
 
@@ -174,147 +156,97 @@
         <span style="color: #94a3b8;">Control de Bandeja:</span>
         <button class="btn btn-primary" style="width: auto; padding: 6px 14px;" onclick="conectarTodo()">⚡ Auto-Empalmar Hilo a Splitter</button>
         <button class="btn btn-danger" style="width: auto; padding: 6px 14px; margin-top: 0;" onclick="desconectarTodo()">✂️ Cortar Empalme</button>
-        <span style="margin-left: auto; font-size: 11px; color: #38bdf8;" id="splice-info">Estado: Hilos a la espera de fusión</span>
+        <span style="margin-left: auto; font-size: 11px; color: #38bdf8;" id="splice-info">Estado: Fusión lista</span>
       </div>
 
       <div class="modal-body">
         <svg id="schematic-svg" viewBox="0 0 1150 620">
-          
           <defs>
-            <!-- Sombra de componentes -->
             <filter id="shadow" x="-10%" y="-10%" width="130%" height="130%">
               <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#000" flood-opacity="0.6"/>
             </filter>
-            <!-- Degradado Módulo Splitter PLC -->
             <linearGradient id="splitterGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stop-color="#1e293b"/>
-              <stop offset="50%" stop-color="#0f172a"/>
-              <stop offset="100%" stop-color="#1e293b"/>
+              <stop offset="0%" stop-color="#1e293b"/><stop offset="50%" stop-color="#0f172a"/><stop offset="100%" stop-color="#1e293b"/>
             </linearGradient>
           </defs>
 
-          <!-- ==================================================== -->
-          <!-- 1. CABLE DE DISTRIBUCIÓN (IZQUIERDA)                 -->
-          <!-- ==================================================== -->
+          <!-- 1. Cable In -->
           <g transform="translate(30, 80)">
-            <!-- Chaqueta exterior cable negro -->
             <rect x="0" y="80" width="100" height="260" rx="12" fill="#030712" stroke="#334155" stroke-width="2" filter="url(#shadow)"/>
             <text x="50" y="60" fill="#94a3b8" font-size="11" font-weight="bold" text-anchor="middle">CABLE DIST. 12 FO</text>
-            
-            <!-- Tubo Búfer Azul (Loose Tube Sangrado) -->
             <rect x="70" y="110" width="70" height="200" rx="8" fill="#1e3a8a" stroke="#3b82f6" stroke-width="2"/>
-            <text x="105" y="330" fill="#60a5fa" font-size="10" text-anchor="middle">Tubo 1 (Azul)</text>
-
-            <!-- Hilos saliendo del tubo (Norma TIA-598) -->
-            <!-- Hilo 1 Azul -->
             <circle cx="140" cy="140" r="5" fill="#3b82f6" stroke="#fff" stroke-width="1.5"/>
             <text x="155" y="144" fill="#93c5fd" font-size="11">H1 Azul</text>
-
-            <!-- Hilo 2 Naranja -->
             <circle cx="140" cy="180" r="5" fill="#f97316" stroke="#fff" stroke-width="1.5"/>
             <text x="155" y="184" fill="#fdba74" font-size="11">H2 Naranja (Paso)</text>
-
-            <!-- Hilo 3 Verde -->
-            <circle cx="140" cy="220" r="5" fill="#22c55e" stroke="#fff" stroke-width="1.5"/>
-            <text x="155" y="224" fill="#86efac" font-size="11">H3 Verde (Reserva)</text>
-
-            <!-- Hilo 4 Marrón -->
-            <circle cx="140" cy="260" r="5" fill="#a16207" stroke="#fff" stroke-width="1.5"/>
-            <text x="155" y="264" fill="#fde047" font-size="11">H4 Marrón (Reserva)</text>
           </g>
 
-          <!-- ==================================================== -->
-          <!-- 2. MANGUITO TERMOCONTRAÍBLE DE FUSIÓN (PEINE BANDEJA) -->
-          <!-- ==================================================== -->
-          <g transform="translate(320, 190)" id="manguito-group">
+          <!-- 2. Manguito -->
+          <g transform="translate(320, 190)">
             <rect x="0" y="0" width="75" height="24" rx="12" fill="#1e293b" stroke="#64748b" stroke-width="1.5" filter="url(#shadow)"/>
             <rect x="6" y="8" width="63" height="8" rx="4" fill="#475569" id="manguito-core"/>
             <text x="37" y="-8" fill="#94a3b8" font-size="10" text-anchor="middle">Empalme Fusión</text>
             <text x="37" y="38" fill="#64748b" font-size="9" text-anchor="middle" id="loss-label">0.05 dB</text>
           </g>
 
-          <!-- ==================================================== -->
-          <!-- 3. MÓDULO FÍSICO SPLITTER PLC 1:8 (CENTRO)           -->
-          <!-- ==================================================== -->
+          <!-- 3. Splitter 1:8 -->
           <g transform="translate(480, 110)">
-            <!-- Chasis Metálico Cassette -->
             <rect x="0" y="0" width="230" height="380" rx="10" fill="url(#splitterGrad)" stroke="#38bdf8" stroke-width="2" filter="url(#shadow)"/>
-            
-            <!-- Serigrafía Técnica -->
             <rect x="15" y="15" width="200" height="48" rx="6" fill="#090d16" stroke="#1e293b"/>
             <text x="115" y="35" fill="#38bdf8" font-size="12" font-weight="bold" text-anchor="middle">PLC SPLITTER 1x8</text>
             <text x="115" y="52" fill="#64748b" font-size="9" text-anchor="middle">IL: 10.3 dB | DIR: >55 dB</text>
-
-            <!-- Puerto IN (Entrada) -->
             <circle cx="0" cy="190" r="7" fill="#0f172a" stroke="#38bdf8" stroke-width="2"/>
-            <circle cx="0" cy="190" r="3" fill="#38bdf8"/>
             <text x="15" y="194" fill="#cbd5e1" font-size="10" font-weight="bold">IN (1490nm)</text>
-
-            <!-- 8 Salidas Pigtails Internos -->
-            <g id="splitter-outputs">
-              <!-- Generado en bucle visual -->
-              <circle cx="230" cy="70" r="5" fill="#10b981" stroke="#fff" stroke-width="1"/>
-              <circle cx="230" cy="105" r="5" fill="#10b981" stroke="#fff" stroke-width="1"/>
-              <circle cx="230" cy="140" r="5" fill="#10b981" stroke="#fff" stroke-width="1"/>
-              <circle cx="230" cy="175" r="5" fill="#10b981" stroke="#fff" stroke-width="1"/>
-              <circle cx="230" cy="210" r="5" fill="#10b981" stroke="#fff" stroke-width="1"/>
-              <circle cx="230" cy="245" r="5" fill="#10b981" stroke="#fff" stroke-width="1"/>
-              <circle cx="230" cy="280" r="5" fill="#10b981" stroke="#fff" stroke-width="1"/>
-              <circle cx="230" cy="315" r="5" fill="#10b981" stroke="#fff" stroke-width="1"/>
-            </g>
-
-            <!-- Esquema interno micro-chip PLC -->
-            <path d="M 50 190 L 100 190 L 170 70 M 100 190 L 170 105 M 100 190 L 170 140 M 100 190 L 170 175 M 100 190 L 170 210 M 100 190 L 170 245 M 100 190 L 170 280 M 100 190 L 170 315" stroke="#334155" stroke-width="1.5" fill="none"/>
           </g>
 
-          <!-- ==================================================== -->
-          <!-- 4. BANCO DE ACOPLADORES SC/APC (DERECHA - PUERTOS)    -->
-          <!-- ==================================================== -->
+          <!-- 4. Puertos SC/APC -->
           <g transform="translate(850, 70)" id="adapters-rack">
             <rect x="0" y="20" width="260" height="420" rx="10" fill="#070a13" stroke="#334155" stroke-width="2" filter="url(#shadow)"/>
             <text x="130" y="10" fill="#94a3b8" font-size="11" font-weight="bold" text-anchor="middle">REGLETA PUERTOS SC/APC</text>
-            
-            <!-- Generado dinámicamente con puertos verdes y potencia -->
             <g id="sc-apc-ports"></g>
           </g>
 
-          <!-- ==================================================== -->
-          <!-- 5. HILOS FÍSICOS CONECTADOS (CURVAS BÉZIER SVG)      -->
-          <!-- ==================================================== -->
+          <!-- 5. Hilos SVG -->
           <g id="dynamic-wires">
-            <!-- Cable H1 hacia Manguito -->
             <path id="wire-feeder" d="M 170 220 C 240 220, 260 202, 320 202" fill="none" stroke="#334155" stroke-width="2.5"/>
-            <!-- Manguito hacia Splitter IN -->
             <path id="wire-splitter-in" d="M 395 202 C 430 202, 440 300, 480 300" fill="none" stroke="#334155" stroke-width="2.5"/>
-            <!-- Salidas del Splitter hacia Puertos Drop -->
             <g id="drop-wires"></g>
           </g>
-
         </svg>
       </div>
     </div>
   </div>
 
   <script>
-    // 1. Capas Cartográficas Sin API Key
+    // 1. Capas Mapas Sin API Key
     const satelite = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { attribution: 'Tiles &copy; Esri', maxZoom: 19 });
     const calles = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 19 });
 
     const map = L.map('map', { center: [10.481, -66.882], zoom: 16, layers: [satelite] });
     L.control.layers({ "Satélite HD (Esri)": satelite, "Mapa de Calles (OSM)": calles }).addTo(map);
 
-    // 2. Estado de Red
+    // 2. Inventario de Red
     let modoDibujo = false;
+    let modoCliente = false;
     let redCoords = [[10.482, -66.885], [10.480, -66.881], [10.478, -66.877]];
     let postesCount = 3;
-    let ctosCount = 2;
-    let redConectada = false;
+    let totalClientes = 10;
+    let totalMetrosDrop = 0;
+
+    // Lista de CTOs con sus coordenadas y puertos ocupados
+    let ctos = [
+      { id: "CTO-01", latlng: [10.480, -66.881], dist_olt: 650, ocupados: 6, cap: 8, marker: null },
+      { id: "CTO-02", latlng: [10.478, -66.877], dist_olt: 1000, ocupados: 4, cap: 8, marker: null }
+    ];
 
     const cableLine = L.polyline(redCoords, { color: '#00d2ff', weight: 4 }).addTo(map);
-
     const oltMarker = L.circleMarker([10.482, -66.885], { radius: 10, fillColor: '#f59e0b', color: '#fff', weight: 2, fillOpacity: 1 }).addTo(map);
-    const cto1Marker = L.circleMarker([10.480, -66.881], { radius: 9, fillColor: '#10b981', color: '#fff', weight: 2, fillOpacity: 1 }).addTo(map);
-    const cto2Marker = L.circleMarker([10.478, -66.877], { radius: 9, fillColor: '#10b981', color: '#fff', weight: 2, fillOpacity: 1 }).addTo(map);
+
+    // Dibujar CTOs
+    ctos.forEach(c => {
+      c.marker = L.circleMarker(c.latlng, { radius: 9, fillColor: '#10b981', color: '#fff', weight: 2, fillOpacity: 1 }).addTo(map);
+      c.marker.on('click', () => seleccionarCTO(c));
+    });
 
     function cambiarTab(tab) {
       document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
@@ -329,37 +261,142 @@
       }
     }
 
+    // Activar/Desactivar Modos
     function toggleModoDibujo() {
       modoDibujo = !modoDibujo;
+      if (modoCliente) toggleModoCliente();
       const btn = document.getElementById('btn-draw');
-      if (modoDibujo) {
-        btn.innerText = "🛑 Detener Trazo de Red";
-        btn.style.background = "#dc2626";
-        map.getContainer().style.cursor = "crosshair";
-      } else {
-        btn.innerText = "✏️ Activar Modo Trazo de Red";
-        btn.style.background = "#d97706";
-        map.getContainer().style.cursor = "";
-      }
+      btn.innerText = modoDibujo ? "🛑 Detener Trazo" : "✏️ Modo Trazo Troncal/Postes";
+      btn.style.background = modoDibujo ? "#dc2626" : "#d97706";
+      map.getContainer().style.cursor = modoDibujo ? "crosshair" : "";
     }
 
-    map.on('click', (e) => {
-      if (!modoDibujo) return;
-      const nuevoPunto = [e.latlng.lat, e.latlng.lng];
-      redCoords.push(nuevoPunto);
-      cableLine.setLatLngs(redCoords);
-      postesCount++;
-      ctosCount++;
+    function toggleModoCliente() {
+      modoCliente = !modoCliente;
+      if (modoDibujo) toggleModoDibujo();
+      const btn = document.getElementById('btn-drop');
+      btn.innerText = modoCliente ? "🛑 Cancelar Acometida" : "🏠 Conectar Nuevo Cliente (Drop)";
+      btn.style.background = modoCliente ? "#dc2626" : "#8b5cf6";
+      map.getContainer().style.cursor = modoCliente ? "pointer" : "";
+    }
 
-      const newMarker = L.circleMarker(nuevoPunto, {
-        radius: 9, fillColor: '#10b981', color: '#fff', weight: 2, fillOpacity: 1
-      }).addTo(map);
-      
-      const ctoName = `CTO-0${ctosCount}`;
-      newMarker.on('click', () => seleccionarCTO(ctoName, 1200 + (ctosCount * 250), 2, 8));
-      actualizarBOM();
+    // CLIC EN EL MAPA: Trazo o Acometida a Cliente
+    map.on('click', (e) => {
+      // 1. Trazado de Red Troncal
+      if (modoDibujo) {
+        const nuevoPunto = [e.latlng.lat, e.latlng.lng];
+        redCoords.push(nuevoPunto);
+        cableLine.setLatLngs(redCoords);
+        postesCount++;
+        
+        const nuevaCTO = {
+          id: `CTO-0${ctos.length + 1}`,
+          latlng: nuevoPunto,
+          dist_olt: 1000 + (ctos.length * 300),
+          ocupados: 1,
+          cap: 8,
+          marker: null
+        };
+        nuevaCTO.marker = L.circleMarker(nuevoPunto, { radius: 9, fillColor: '#10b981', color: '#fff', weight: 2, fillOpacity: 1 }).addTo(map);
+        nuevaCTO.marker.on('click', () => seleccionarCTO(nuevaCTO));
+        ctos.push(nuevaCTO);
+        actualizarBOM();
+        return;
+      }
+
+      // 2. Conectar Cliente Drop (Factibilidad Técnica)
+      if (modoCliente) {
+        conectarDropCliente(e.latlng);
+      }
     });
 
+    // Motor de Viabilidad Drop
+    function conectarDropCliente(clienteLatLng) {
+      let mejorCTO = null;
+      let menorDistancia = 999999;
+
+      ctos.forEach(c => {
+        const d = map.distance(clienteLatLng, c.latlng);
+        if (d < menorDistancia) {
+          menorDistancia = d;
+          mejorCTO = c;
+        }
+      });
+
+      const distM = Math.round(menorDistancia);
+
+      // Regla de Ingeniería 1: Límite de Drop (150 metros)
+      if (distM > 150) {
+        alert(`❌ FACTIBILIDAD NEGATIVA: La CTO más cercana (${mejorCTO.id}) está a ${distM} metros. Excede el límite de 150m de acometida drop.`);
+        return;
+      }
+
+      // Regla de Ingeniería 2: Disponibilidad de Puertos
+      if (mejorCTO.ocupados >= mejorCTO.cap) {
+        alert(`❌ CTO SATURADA: La ${mejorCTO.id} ya tiene ${mejorCTO.ocupados}/${mejorCTO.cap} puertos ocupados. Requiere ampliación de red.`);
+        return;
+      }
+
+      // Conexión Aprobada
+      mejorCTO.ocupados++;
+      totalClientes++;
+      totalMetrosDrop += distM;
+      document.getElementById('total-clientes').innerText = `${totalClientes} abonados`;
+
+      // Dibujar cable Drop (Línea amarilla punteada)
+      L.polyline([mejorCTO.latlng, [clienteLatLng.lat, clienteLatLng.lng]], {
+        color: '#facc15', weight: 2.5, dashArray: '5, 5'
+      }).addTo(map);
+
+      // Dibujar ONT del Cliente (Punto Magenta)
+      const cliMarker = L.circleMarker([clienteLatLng.lat, clienteLatLng.lng], {
+        radius: 6, fillColor: '#d946ef', color: '#fff', weight: 1.5, fillOpacity: 1
+      }).addTo(map);
+
+      // Calcular Potencia en Roseta / ONT
+      const perdidaTroncal = (mejorCTO.dist_olt / 1000) * 0.22;
+      const perdidaDrop = (distM / 1000) * 0.35;
+      const perdidaConectoresMecanicos = 0.6; // 2 conectores SC/APC rápidos
+      const rxONT = (4.5 - (perdidaTroncal + 10.5 + 0.2 + perdidaDrop + perdidaConectoresMecanicos)).toFixed(2);
+
+      const clienteId = `CLI-${1000 + totalClientes}`;
+      cliMarker.bindPopup(`
+        <strong>${clienteId}</strong><br>
+        Conectado a: <b>${mejorCTO.id}</b> (Puerto ${mejorCTO.ocupados})<br>
+        Longitud Drop: <b>${distM} m</b><br>
+        Potencia RX ONT: <b style="color: #10b981;">${rxONT} dBm</b> (Óptima)
+      `).openPopup();
+
+      seleccionarCTO(mejorCTO);
+      actualizarBOM();
+      toggleModoCliente(); // Desactivar modo para evitar clics accidentales
+    }
+
+    function seleccionarCTO(c) {
+      cambiarTab('telemetria');
+      const perdidaFibra = (c.dist_olt / 1000) * 0.22;
+      const rxTeorica = (4.5 - (perdidaFibra + 10.5 + 0.2)).toFixed(2);
+      document.getElementById('element-details').innerHTML = `
+        <h3>Detalle: ${c.id}</h3>
+        <div class="stat-row"><span>Tipo:</span><span class="stat-val">CTO Conectorizada</span></div>
+        <div class="stat-row"><span>Ocupación:</span><span class="stat-val" style="color:${c.ocupados>=8?'#ef4444':'#34d399'}">${c.ocupados}/${c.cap} Puertos</span></div>
+        <div class="stat-row"><span>Distancia OLT:</span><span class="stat-val">${c.dist_olt} m</span></div>
+        <div class="stat-row"><span>Potencia Media:</span><span class="stat-val" style="color: #34d399">${rxTeorica} dBm</span></div>
+        <button class="btn btn-primary" style="margin-top: 10px;" onclick="abrirDiagrama('${c.id}')">🛠️ Abrir Diagrama Interno</button>
+      `;
+    }
+
+    oltMarker.on('click', () => {
+      cambiarTab('telemetria');
+      document.getElementById('element-details').innerHTML = `
+        <h3>Detalle: OLT-Cabecera-01</h3>
+        <div class="stat-row"><span>Tipo:</span><span class="stat-val">Chassis GPON</span></div>
+        <div class="stat-row"><span>Puerto PON:</span><span class="stat-val">Slot 1 / Port 1</span></div>
+        <div class="stat-row"><span>Potencia TX:</span><span class="stat-val" style="color:#f59e0b;">+4.50 dBm</span></div>
+      `;
+    });
+
+    // BOM
     function actualizarBOM() {
       let totalMetros = 0;
       for (let i = 0; i < redCoords.length - 1; i++) {
@@ -368,27 +405,25 @@
       totalMetros = Math.round(totalMetros);
       const cableConReserva = Math.round(totalMetros * 1.15);
 
-      const retenciones = (postesCount * 2);
-      const suspensiones = Math.max(0, postesCount - 2);
-      const flejesMetros = Math.round(postesCount * 2.5);
-      const hebillas = postesCount * 2;
-      const crucetas = Math.ceil(totalMetros / 400);
-      const protectoresFusion = ctosCount * 8;
-
       document.getElementById('bom-cable-len').innerText = `${cableConReserva.toLocaleString()} m`;
+      document.getElementById('bom-drop-len').innerText = `${totalMetrosDrop.toLocaleString()} m`;
       document.getElementById('bom-postes').innerText = `${postesCount} postes`;
-      document.getElementById('bom-ctos').innerText = `${ctosCount} cajas`;
+      document.getElementById('bom-ctos').innerText = `${ctos.length} cajas`;
+
+      const tensoresPClamp = Math.round(totalMetrosDrop / 35); // 1 tensor cada 35m de drop
+      const conectoresDrop = (totalClientes - 10) * 2; // 2 conectores rápidos por cliente nuevo
 
       const materiales = [
         { item: "Cable Óptico ADSS 24 FO G.652D", cant: cableConReserva, unid: "m" },
-        { item: "Herraje de Retención Preformado ADSS", cant: retenciones, unid: "pza" },
-        { item: "Herraje de Suspensión (Soporte J)", cant: suspensiones, unid: "pza" },
-        { item: "Cinta de Acero Inox 3/4\" (Band-it)", cant: flejesMetros, unid: "m" },
-        { item: "Hebillas de Acero Inox 3/4\"", cant: hebillas, unid: "pza" },
-        { item: "Crucetas de Reserva Técnica", cant: crucetas, unid: "pza" },
-        { item: "Caja de Terminación Óptica (CTO 8P)", cant: ctosCount, unid: "pza" },
-        { item: "Splitter PLC 1:8 SC/APC", cant: ctosCount, unid: "pza" },
-        { item: "Manguitos Termocontraíbles 60mm", cant: protectoresFusion, unid: "pza" }
+        { item: "Cable Drop Flat 1 FO G.657A2", cant: totalMetrosDrop, unid: "m" },
+        { item: "Herraje de Retención Preformado ADSS", cant: postesCount * 2, unid: "pza" },
+        { item: "Herraje de Suspensión (Soporte J)", cant: Math.max(0, postesCount - 2), unid: "pza" },
+        { item: "Tensores Tipo Gota (P-Clamp) para Drop", cant: tensoresPClamp, unid: "pza" },
+        { item: "Conector Rápido SC/APC Mecánico Drop", cant: conectoresDrop, unid: "pza" },
+        { item: "Cinta de Acero Inox 3/4\" (Band-it)", cant: Math.round(postesCount * 2.5), unid: "m" },
+        { item: "Hebillas de Acero Inox 3/4\"", cant: postesCount * 2, unid: "pza" },
+        { item: "Caja de Terminación Óptica (CTO 8P)", cant: ctos.length, unid: "pza" },
+        { item: "Splitter PLC 1:8 SC/APC", cant: ctos.length, unid: "pza" }
       ];
 
       const tbody = document.getElementById('bom-table-body');
@@ -410,52 +445,17 @@
       a.click();
     }
 
-    function seleccionarCTO(id, dist, ocupados, cap) {
-      cambiarTab('telemetria');
-      const perdidaFibra = (dist / 1000) * 0.22;
-      const rxTeorica = (4.5 - (perdidaFibra + 10.5 + 0.2)).toFixed(2);
-      document.getElementById('element-details').innerHTML = `
-        <h3>Detalle: ${id}</h3>
-        <div class="stat-row"><span>Tipo:</span><span class="stat-val">CTO Conectorizada</span></div>
-        <div class="stat-row"><span>Ocupación:</span><span class="stat-val">${ocupados}/${cap} Puertos</span></div>
-        <div class="stat-row"><span>Distancia OLT:</span><span class="stat-val">${dist} m</span></div>
-        <div class="stat-row"><span>Atenuación Est.:</span><span class="stat-val">-${(4.5 - rxTeorica).toFixed(2)} dB</span></div>
-        <div class="stat-row"><span>Potencia RX Media:</span><span class="stat-val" style="color: #34d399">${rxTeorica} dBm</span></div>
-        <button class="btn btn-primary" style="margin-top: 10px;" onclick="abrirDiagrama('${id}')">🛠️ Abrir Diagrama Interno</button>
-      `;
-    }
-
-    cto1Marker.on('click', () => seleccionarCTO('CTO-01', 650, 6, 8));
-    cto2Marker.on('click', () => seleccionarCTO('CTO-02', 1000, 4, 8));
-    oltMarker.on('click', () => {
-      cambiarTab('telemetria');
-      document.getElementById('element-details').innerHTML = `
-        <h3>Detalle: OLT-Cabecera-01</h3>
-        <div class="stat-row"><span>Tipo:</span><span class="stat-val">Chassis GPON</span></div>
-        <div class="stat-row"><span>Puerto PON:</span><span class="stat-val">Slot 1 / Port 1</span></div>
-        <div class="stat-row"><span>Potencia TX:</span><span class="stat-val" style="color:#f59e0b;">+4.50 dBm</span></div>
-      `;
-    });
-
-    // ==========================================================
-    // LÓGICA DEL MOTOR ESQUEMÁTICO VECTORIAL (SVG SPLICE ENGINE)
-    // ==========================================================
+    // Modal SVG
     function abrirDiagrama(id) {
-      document.getElementById('modal-title').innerText = `📦 Diagrama Físico de Bandeja: ${id} (8 Puertos)`;
+      document.getElementById('modal-title').innerText = `📦 Diagrama Físico de Bandeja: ${id}`;
       document.getElementById('splice-modal').style.display = 'flex';
-      dibujarPuertosSCAPC(redConectada);
+      dibujarPuertosSCAPC(true);
     }
-
-    function cerrarDiagrama() {
-      document.getElementById('splice-modal').style.display = 'none';
-    }
-
+    function cerrarDiagrama() { document.getElementById('splice-modal').style.display = 'none'; }
     function dibujarPuertosSCAPC(conectado) {
       const gPorts = document.getElementById('sc-apc-ports');
       const gWires = document.getElementById('drop-wires');
-      gPorts.innerHTML = '';
-      gWires.innerHTML = '';
-
+      gPorts.innerHTML = ''; gWires.innerHTML = '';
       const yOutputs = [70, 105, 140, 175, 210, 245, 280, 315];
 
       for (let i = 0; i < 8; i++) {
@@ -464,73 +464,40 @@
         const pwr = conectado ? (-18.25 - (i * 0.08)).toFixed(2) : '--';
         const colorLed = conectado ? '#10b981' : '#64748b';
 
-        // Adaptador Físico SC/APC (Verde Óptico con bisel)
         gPorts.innerHTML += `
           <g transform="translate(20, ${yPort})">
-            <!-- Bloque de Acoplador SC/APC Verde -->
             <rect x="0" y="0" width="45" height="34" rx="4" fill="#047857" stroke="#10b981" stroke-width="1.5"/>
             <rect x="10" y="7" width="25" height="20" rx="2" fill="#064e3b"/>
-            <!-- Entrada óptica -->
             <circle cx="0" cy="17" r="4" fill="#059669" stroke="#fff" stroke-width="1"/>
-            
-            <!-- Etiqueta de Puerto y Display de Potencia dBm -->
             <text x="55" y="16" fill="#f8fafc" font-size="11" font-weight="bold">P0${i+1} SC/APC</text>
             <text x="55" y="29" fill="${colorLed}" font-size="10" font-family="monospace">${pwr} dBm</text>
             <circle cx="215" cy="17" r="5" fill="${colorLed}"/>
           </g>
         `;
 
-        // Curva Bézier del Hilo Pigtail desde Splitter OUT hasta SC/APC
         const strokeColor = conectado ? '#10b981' : '#334155';
-        const animClass = conectado ? 'fiber-active' : '';
-
         gWires.innerHTML += `
           <path d="M 710 ${ySplitter} C 780 ${ySplitter}, 800 ${70 + yPort + 17}, 870 ${70 + yPort + 17}" 
-                fill="none" stroke="${strokeColor}" stroke-width="${conectado ? 2 : 1.5}" class="${animClass}"/>
+                fill="none" stroke="${strokeColor}" stroke-width="${conectado ? 2 : 1.5}" class="${conectado ? 'fiber-active' : ''}"/>
         `;
       }
     }
 
     function conectarTodo() {
-      redConectada = true;
-      // Iluminar Hilo Feeder (Azul)
-      const wFeeder = document.getElementById('wire-feeder');
-      wFeeder.setAttribute('stroke', '#38bdf8');
-      wFeeder.setAttribute('stroke-width', '2.5');
-      wFeeder.setAttribute('class', 'fiber-active');
-
-      // Iluminar Manguito Fusión
+      document.getElementById('wire-feeder').setAttribute('stroke', '#38bdf8');
+      document.getElementById('wire-feeder').setAttribute('class', 'fiber-active');
       document.getElementById('manguito-core').setAttribute('fill', '#38bdf8');
-      document.getElementById('loss-label').style.fill = '#38bdf8';
-
-      // Iluminar Entrada Splitter
-      const wIn = document.getElementById('wire-splitter-in');
-      wIn.setAttribute('stroke', '#38bdf8');
-      wIn.setAttribute('stroke-width', '2.5');
-      wIn.setAttribute('class', 'fiber-active');
-
-      document.getElementById('splice-info').innerText = "✓ Estado: Fusión activa | Señal GPON 1490nm propagada a los 8 puertos";
-      document.getElementById('splice-info').style.color = "#34d399";
-
+      document.getElementById('wire-splitter-in').setAttribute('stroke', '#38bdf8');
+      document.getElementById('wire-splitter-in').setAttribute('class', 'fiber-active');
       dibujarPuertosSCAPC(true);
     }
 
     function desconectarTodo() {
-      redConectada = false;
-      const wFeeder = document.getElementById('wire-feeder');
-      wFeeder.setAttribute('stroke', '#334155');
-      wFeeder.removeAttribute('class');
-
+      document.getElementById('wire-feeder').setAttribute('stroke', '#334155');
+      document.getElementById('wire-feeder').removeAttribute('class');
       document.getElementById('manguito-core').setAttribute('fill', '#475569');
-      document.getElementById('loss-label').style.fill = '#64748b';
-
-      const wIn = document.getElementById('wire-splitter-in');
-      wIn.setAttribute('stroke', '#334155');
-      wIn.removeAttribute('class');
-
-      document.getElementById('splice-info').innerText = "Estado: Hilos a la espera de fusión";
-      document.getElementById('splice-info').style.color = "#38bdf8";
-
+      document.getElementById('wire-splitter-in').setAttribute('stroke', '#334155');
+      document.getElementById('wire-splitter-in').removeAttribute('class');
       dibujarPuertosSCAPC(false);
     }
 
