@@ -3,77 +3,76 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FTTx Next-Gen GIS & Splice Engine</title>
-  <!-- MapLibre GL CDN -->
-  <link href="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.css" rel="stylesheet" />
-  <script src="https://unpkg.com/maplibre-gl@3.6.2/dist/maplibre-gl.js"></script>
+  <title>FTTx Next-Gen OS | GIS & Splice Engine</title>
+  
+  <!-- Leaflet CSS & JS (Ultra-estable, compatible con 100% de dispositivos) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-    body { display: flex; height: 100vh; overflow: hidden; background: #0b0f17; color: #e2e8f0; }
-    
-    /* SIDEBAR */
-    #sidebar { width: 360px; background: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; z-index: 10; }
-    .header { padding: 18px; background: #090d14; border-bottom: 1px solid #1f2937; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { display: flex; height: 100vh; overflow: hidden; background: #0f172a; color: #f8fafc; }
+
+    /* PANEL LATERAL */
+    #sidebar { width: 360px; min-width: 360px; background: #111827; border-right: 1px solid #1f2937; display: flex; flex-direction: column; z-index: 1000; box-shadow: 4px 0 10px rgba(0,0,0,0.5); }
+    .header { padding: 18px; background: #090d16; border-bottom: 1px solid #1f2937; }
     .header h2 { font-size: 17px; color: #38bdf8; font-weight: 700; letter-spacing: -0.5px; }
     .header p { font-size: 11px; color: #94a3b8; margin-top: 4px; }
     .content { padding: 16px; flex: 1; overflow-y: auto; }
-    
-    .card { background: #1a2234; border-radius: 8px; padding: 14px; margin-bottom: 14px; border: 1px solid #283548; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3); }
-    .card h3 { font-size: 13px; margin-bottom: 10px; color: #60a5fa; display: flex; justify-content: space-between; align-items: center; }
+
+    .card { background: #1e293b; border-radius: 8px; padding: 14px; margin-bottom: 14px; border: 1px solid #334155; }
+    .card h3 { font-size: 13px; margin-bottom: 10px; color: #38bdf8; display: flex; justify-content: space-between; align-items: center; }
     .stat-row { display: flex; justify-content: space-between; margin: 6px 0; font-size: 12px; color: #94a3b8; }
     .stat-val { font-weight: 600; color: #f1f5f9; }
-    
-    .btn { width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+
+    .btn { width: 100%; padding: 10px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 12px; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
     .btn-primary { background: #2563eb; color: white; }
     .btn-primary:hover { background: #1d4ed8; }
     .btn-danger { background: #dc2626; color: white; margin-top: 8px; }
     .btn-danger:hover { background: #b91c1c; }
     .btn-success { background: #059669; color: white; margin-top: 8px; }
     .btn-success:hover { background: #047857; }
-    
+
     .badge { padding: 3px 8px; border-radius: 9999px; font-size: 10px; font-weight: 700; }
     .badge-ok { background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid #059669; }
     .badge-fail { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #dc2626; }
-    
+
     /* MAPA */
-    #map { flex: 1; height: 100%; position: relative; }
+    #map { flex: 1; height: 100%; background: #0b0f19; }
 
     /* MODAL DE EMPALMES (SPLICE MATRIX ENGINE) */
     #splice-modal {
       position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
       background: rgba(0, 0, 0, 0.85); backdrop-filter: blur(4px);
-      z-index: 100; display: none; align-items: center; justify-content: center;
+      z-index: 2000; display: none; align-items: center; justify-content: center;
     }
     .modal-box {
-      width: 92%; max-width: 1100px; height: 85vh; background: #0f172a;
+      width: 92%; max-width: 1050px; height: 85vh; background: #0f172a;
       border: 1px solid #334155; border-radius: 12px; display: flex; flex-direction: column;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7); overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8); overflow: hidden;
     }
     .modal-header {
       padding: 16px 24px; background: #090d16; border-bottom: 1px solid #334155;
       display: flex; justify-content: space-between; align-items: center;
     }
     .modal-header h2 { font-size: 16px; color: #38bdf8; }
-    .close-btn { background: transparent; border: none; color: #94a3b8; font-size: 20px; cursor: pointer; }
+    .close-btn { background: transparent; border: none; color: #94a3b8; font-size: 24px; cursor: pointer; }
     .close-btn:hover { color: #fff; }
-    
+
     .modal-body { flex: 1; display: grid; grid-template-columns: 280px 1fr 280px; gap: 16px; padding: 20px; overflow-y: auto; background: #0b1120; }
-    
-    /* Bandeja & Fibra Elements */
     .tray-col { background: #131d31; border: 1px solid #1e293b; border-radius: 8px; padding: 14px; display: flex; flex-direction: column; }
     .tray-col h4 { font-size: 12px; color: #94a3b8; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.5px; }
-    
-    .fiber-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 6px 8px; background: #1e293b; border-radius: 6px; font-size: 12px; }
+
+    .fiber-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; padding: 7px 10px; background: #1e293b; border-radius: 6px; font-size: 12px; }
     .fiber-color { width: 14px; height: 14px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.4); }
     .color-blue { background: #2563eb; }
     .color-orange { background: #f97316; }
     .color-green { background: #16a34a; }
     .color-brown { background: #854d0e; }
-    
+
     .splitter-box { background: #1e293b; border: 1px solid #38bdf8; border-radius: 8px; padding: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; margin: auto 0; }
-    .port-btn { padding: 6px 12px; font-size: 11px; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #cbd5e1; cursor: pointer; width: 100%; text-align: left; display: flex; justify-content: space-between; }
-    .port-btn:hover { border-color: #38bdf8; }
-    .port-active { border-color: #10b981; background: rgba(16, 185, 129, 0.1); color: #34d399; }
+    .port-btn { padding: 6px 12px; font-size: 11px; border-radius: 4px; border: 1px solid #475569; background: #0f172a; color: #cbd5e1; width: 100%; text-align: left; display: flex; justify-content: space-between; }
+    .port-active { border-color: #10b981; background: rgba(16, 185, 129, 0.15); color: #34d399; }
   </style>
 </head>
 <body>
@@ -82,7 +81,7 @@
   <div id="sidebar">
     <div class="header">
       <h2>FTTx OS Engine v0.2</h2>
-      <p>Cálculo Óptico + Diagramas de Empalme Inteligentes</p>
+      <p>Superando OZmap | Topología & Balance Óptico</p>
     </div>
     <div class="content">
       <div class="card">
@@ -94,13 +93,14 @@
 
       <div class="card" id="element-details">
         <h3>Elemento Seleccionado</h3>
-        <p style="font-size: 12px; color: #94a3b8;">Haz clic en una CTO o en el Cable en el mapa para inspeccionar.</p>
+        <p style="font-size: 12px; color: #94a3b8;">Haz clic en una <strong>CTO verde</strong> o en el <strong>Cable cyan</strong> en el mapa.</p>
       </div>
 
       <div class="card">
         <h3>Simulación de Eventos</h3>
-        <button class="btn btn-danger" onclick="simularCorte()">Simular Rotura de Fibra</button>
-        <button class="btn btn-success" onclick="restaurarRed()">Restaurar Enlace</button>
+        <p style="font-size: 11px; color: #94a3b8; margin-bottom: 8px;">Corta el cable para ver la respuesta instantánea del grafo de red.</p>
+        <button class="btn btn-danger" onclick="simularCorte()">⚠️ Simular Rotura de Troncal</button>
+        <button class="btn btn-success" onclick="restaurarRed()">🔄 Restaurar Enlace</button>
       </div>
     </div>
   </div>
@@ -108,7 +108,7 @@
   <!-- MAPA GIS -->
   <div id="map"></div>
 
-  <!-- MODAL DE DIAGRAMA DE EMPALMES (SPLICE TRAY ENGINE) -->
+  <!-- MODAL DE DIAGRAMA DE EMPALMES -->
   <div id="splice-modal">
     <div class="modal-box">
       <div class="modal-header">
@@ -117,7 +117,7 @@
       </div>
       <div class="modal-body">
         
-        <!-- COLUMNA 1: CABLE FEEDER ENTRANTE -->
+        <!-- CABLE IN -->
         <div class="tray-col">
           <h4>Cable Distribución (In)</h4>
           <div class="fiber-row">
@@ -139,19 +139,19 @@
           <button class="btn btn-primary" style="margin-top: auto;" onclick="autoFusiones()">⚡ Auto-Empalme 1-Click</button>
         </div>
 
-        <!-- COLUMNA 2: BANDEJA Y SPLITTER PLC -->
+        <!-- SPLITTER 1:8 -->
         <div class="tray-col" style="background: #0d1525; border-color: #38bdf8;">
-          <h4>Bandeja de Fusión & Splitter</h4>
+          <h4>Bandeja & Splitter PLC</h4>
           <div class="splitter-box">
             <span style="font-size: 12px; font-weight: bold; color: #38bdf8;">SPLITTER PLC 1:8</span>
-            <div style="font-size: 10px; color: #94a3b8; text-align: center;">Pérdida Inserción: ~10.5 dB<br>Fusión Manguito: 0.05 dB</div>
-            <div id="fused-status" style="font-size: 11px; padding: 4px 8px; border-radius: 4px; background: #334155; color: #94a3b8; margin-top: 6px;">
+            <div style="font-size: 10px; color: #94a3b8; text-align: center;">Pérdida Inserción: 10.5 dB<br>Pérdida Empalme: 0.05 dB</div>
+            <div id="fused-status" style="font-size: 11px; padding: 6px 10px; border-radius: 4px; background: #334155; color: #94a3b8; margin-top: 6px; text-align: center;">
               Entrada IN: Desconectada
             </div>
           </div>
         </div>
 
-        <!-- COLUMNA 3: PUERTOS DROP DE CLIENTES -->
+        <!-- PUERTOS DROP OUT -->
         <div class="tray-col">
           <h4>Puertos Drop SC/APC (Out)</h4>
           <div id="ports-list" style="display: flex; flex-direction: column; gap: 6px;">
@@ -164,88 +164,66 @@
   </div>
 
   <script>
-    // Inicializar Mapa
-    const map = new maplibregl.Map({
-      container: 'map',
-      style: {
-        version: 8,
-        sources: {
-          'osm': {
-            type: 'raster',
-            tiles: ['https://tile.openstreetmap.org/{z}/{x}/{y}.png'],
-            tileSize: 256,
-            attribution: '&copy; OpenStreetMap'
-          }
-        },
-        layers: [{ id: 'osm-layer', type: 'raster', source: 'osm' }]
-      },
-      center: [-66.882, 10.481],
-      zoom: 15
+    // 1. Inicializar Leaflet con mapa base oscuro CartoDB Dark Matter
+    const map = L.map('map', { zoomControl: true }).setView([10.481, -66.882], 15);
+
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+      attribution: '&copy; OpenStreetMap contributors &copy; CARTO',
+      subdomains: 'abcd',
+      maxZoom: 19
+    }).addTo(map);
+
+    // 2. Definición de Red FTTH (Topología)
+    const troncalCoords = [[10.482, -66.885], [10.480, -66.881]];
+    const distCoords = [[10.480, -66.881], [10.478, -66.877]];
+
+    // Cables (Polylines)
+    const cableTroncal = L.polyline(troncalCoords, { color: '#00d2ff', weight: 4 }).addTo(map);
+    const cableDist = L.polyline(distCoords, { color: '#00d2ff', weight: 4 }).addTo(map);
+
+    // OLT (Punto Dorado)
+    const oltMarker = L.circleMarker([10.482, -66.885], {
+      radius: 9, fillColor: '#f59e0b', color: '#fff', weight: 2, fillOpacity: 1
+    }).addTo(map);
+
+    // CTOs (Puntos Verdes Esmeralda)
+    const cto1Marker = L.circleMarker([10.480, -66.881], {
+      radius: 8, fillColor: '#10b981', color: '#fff', weight: 2, fillOpacity: 1
+    }).addTo(map);
+
+    const cto2Marker = L.circleMarker([10.478, -66.877], {
+      radius: 8, fillColor: '#10b981', color: '#fff', weight: 2, fillOpacity: 1
+    }).addTo(map);
+
+    // 3. Interacciones y Clics
+    oltMarker.on('click', () => {
+      document.getElementById('element-details').innerHTML = `
+        <h3>Detalle: OLT-Cabecera-01</h3>
+        <div class="stat-row"><span>Tipo:</span><span class="stat-val">Chassis GPON</span></div>
+        <div class="stat-row"><span>Puerto PON:</span><span class="stat-val">Slot 1 / Port 1</span></div>
+        <div class="stat-row"><span>Potencia TX:</span><span class="stat-val" style="color:#f59e0b;">+4.50 dBm</span></div>
+      `;
     });
 
-    const redData = {
-      type: "FeatureCollection",
-      features: [
-        { type: "Feature", properties: { id: "OLT-01", tipo: "OLT", potencia_tx: 4.5 }, geometry: { type: "Point", coordinates: [-66.885, 10.482] } },
-        { type: "Feature", properties: { id: "TRONCAL-01", tipo: "Cable", estado: "OK", len_m: 650 }, geometry: { type: "LineString", coordinates: [[-66.885, 10.482], [-66.881, 10.480]] } },
-        { type: "Feature", properties: { id: "CTO-01", tipo: "CTO", split: "1:8", dist_m: 650, capacidad: 8, ocupados: 6 }, geometry: { type: "Point", coordinates: [-66.881, 10.480] } },
-        { type: "Feature", properties: { id: "DIST-01", tipo: "Cable", estado: "OK", len_m: 350 }, geometry: { type: "LineString", coordinates: [[-66.881, 10.480], [-66.877, 10.478]] } },
-        { type: "Feature", properties: { id: "CTO-02", tipo: "CTO", split: "1:8", dist_m: 1000, capacidad: 8, ocupados: 4 }, geometry: { type: "Point", coordinates: [-66.877, 10.478] } }
-      ]
-    };
+    function seleccionarCTO(id, dist, ocupados, cap) {
+      const perdidaFibra = (dist / 1000) * 0.22;
+      const rxTeorica = (4.5 - (perdidaFibra + 10.5 + 0.2)).toFixed(2);
 
-    let selectedCto = null;
+      document.getElementById('element-details').innerHTML = `
+        <h3>Detalle: ${id}</h3>
+        <div class="stat-row"><span>Tipo:</span><span class="stat-val">CTO Conectorizada</span></div>
+        <div class="stat-row"><span>Ocupación:</span><span class="stat-val">${ocupados}/${cap} Puertos</span></div>
+        <div class="stat-row"><span>Distancia OLT:</span><span class="stat-val">${dist} m</span></div>
+        <div class="stat-row"><span>Atenuación Est.:</span><span class="stat-val">-${(4.5 - rxTeorica).toFixed(2)} dB</span></div>
+        <div class="stat-row"><span>Potencia RX Media:</span><span class="stat-val" style="color: #34d399">${rxTeorica} dBm</span></div>
+        <button class="btn btn-primary" style="margin-top: 10px;" onclick="abrirDiagrama('${id}')">🛠️ Abrir Diagrama Interno</button>
+      `;
+    }
 
-    map.on('load', () => {
-      map.addSource('red-ftth', { type: 'geojson', data: redData });
+    cto1Marker.on('click', () => seleccionarCTO('CTO-01', 650, 6, 8));
+    cto2Marker.on('click', () => seleccionarCTO('CTO-02', 1000, 4, 8));
 
-      map.addLayer({
-        id: 'cables-layer',
-        type: 'line',
-        source: 'red-ftth',
-        filter: ['==', '$type', 'LineString'],
-        paint: {
-          'line-color': ['case', ['==', ['get', 'estado'], 'CUT'], '#ef4444', '#00d2ff'],
-          'line-width': 4
-        }
-      });
-
-      map.addLayer({
-        id: 'nodos-layer',
-        type: 'circle',
-        source: 'red-ftth',
-        filter: ['==', '$type', 'Point'],
-        paint: {
-          'circle-radius': 8,
-          'circle-color': ['case', ['==', ['get', 'tipo'], 'OLT'], '#f59e0b', '#10b981'],
-          'circle-stroke-width': 2,
-          'circle-stroke-color': '#fff'
-        }
-      });
-
-      map.on('click', 'nodos-layer', (e) => {
-        const props = e.features[0].properties;
-        const panel = document.getElementById('element-details');
-        
-        if (props.tipo === 'CTO') {
-          selectedCto = props;
-          const perdidaFibra = (props.dist_m / 1000) * 0.22;
-          const rxTeorica = (4.5 - (perdidaFibra + 10.5 + 0.2)).toFixed(2);
-
-          panel.innerHTML = `
-            <h3>Detalle: ${props.id}</h3>
-            <div class="stat-row"><span>Tipo:</span><span class="stat-val">CTO Conectorizada</span></div>
-            <div class="stat-row"><span>Puertos Ocupados:</span><span class="stat-val">${props.ocupados}/${props.capacidad}</span></div>
-            <div class="stat-row"><span>Distancia a OLT:</span><span class="stat-val">${props.dist_m} m</span></div>
-            <div class="stat-row"><span>Atenuación Est.:</span><span class="stat-val">-${(4.5 - rxTeorica).toFixed(2)} dB</span></div>
-            <div class="stat-row"><span>Potencia RX Media:</span><span class="stat-val" style="color: #34d399">${rxTeorica} dBm</span></div>
-            <button class="btn btn-primary" style="margin-top: 10px;" onclick="abrirDiagrama('${props.id}')">🛠️ Abrir Diagrama Interno</button>
-          `;
-        }
-      });
-    });
-
-    // Control del Modal de Diagrama de Empalme
+    // 4. Lógica de la Bandeja de Empalmes (Splice Tray)
     function abrirDiagrama(id) {
       document.getElementById('modal-title').innerText = `Bandeja de Empalme Interna: ${id}`;
       document.getElementById('splice-modal').style.display = 'flex';
@@ -259,4 +237,39 @@
     function renderizarPuertos(conectado) {
       const container = document.getElementById('ports-list');
       container.innerHTML = '';
-      for (let i = 1; i <=
+      for (let i = 1; i <= 8; i++) {
+        const pwr = conectado ? (-18.25 - (Math.random() * 0.3)).toFixed(2) : '--';
+        const activeClass = conectado ? 'port-active' : '';
+        container.innerHTML += `
+          <div class="port-btn ${activeClass}">
+            <span>Puerto ${i} (Drop)</span>
+            <strong>${pwr} dBm</strong>
+          </div>
+        `;
+      }
+    }
+
+    function autoFusiones() {
+      const status = document.getElementById('fused-status');
+      status.style.background = '#065f46';
+      status.style.color = '#34d399';
+      status.innerHTML = '✓ Hilo 1 Azul &rarr; Splitter IN (0.05 dB)';
+      renderizarPuertos(true);
+    }
+
+    // 5. Simulación de Falla / Corte
+    function simularCorte() {
+      cableTroncal.setStyle({ color: '#ef4444', dashArray: '6, 6' });
+      document.getElementById('net-status').className = 'badge badge-fail';
+      document.getElementById('net-status').innerText = 'CORTE DETECTADO';
+      alert('¡Alerta de OTDR! Rotura detectada a 650m de OLT. CTO-01 y CTO-02 caídas (10 clientes sin servicio).');
+    }
+
+    function restaurarRed() {
+      cableTroncal.setStyle({ color: '#00d2ff', dashArray: null });
+      document.getElementById('net-status').className = 'badge badge-ok';
+      document.getElementById('net-status').innerText = 'ONLINE';
+    }
+  </script>
+</body>
+</html>
